@@ -20,15 +20,18 @@ namespace Apex.Collections
 
         public V GetOrAdd(K key, Func<K, V> valueCreator)
         {
-            V result;
-            if(Get(key, out result))
+            if (Get(key, out var result))
             {
                 return result;
             }
 
-            if(_list.Count >= Capacity)
+            if (_list.Count >= Capacity)
             {
-                RemoveFirst();
+                var node = RemoveFirst();
+                result = valueCreator(key);
+                AddFromExistingNode(key, result, node);
+
+                return result;
             }
 
             result = valueCreator(key);
@@ -37,11 +40,12 @@ namespace Apex.Collections
             return result;
         }
 
-        private void RemoveFirst()
+        private LinkedListNode<KeyValuePair<K, V>> RemoveFirst()
         {
             var lru = _list.First;
             _lookup.Remove(lru.Value.Key);
             _list.RemoveFirst();
+            return lru;
         }
 
         private void Add(K key, V value)
@@ -50,12 +54,19 @@ namespace Apex.Collections
             _lookup.Add(key, newNode);
         }
 
+        private void AddFromExistingNode(K key, V result, LinkedListNode<KeyValuePair<K, V>> node)
+        {
+            node.Value = new KeyValuePair<K, V>(key, result);
+            _list.AddLast(node);
+            _lookup.Add(key, node);
+        }
+
         private bool Get(K key, out V value)
         {
             if (_lookup.TryGetValue(key, out var node))
             {
-                _list.Remove(node.Value);
-                _list.AddLast(node.Value);
+                _list.Remove(node);
+                _list.AddLast(node);
                 value = node.Value.Value;
                 return true;
             }

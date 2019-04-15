@@ -1,11 +1,12 @@
 ﻿using Apex.Collections;
 using BenchmarkDotNet.Attributes;
+using Caching;
 using System;
 using System.Threading.Tasks;
 
 namespace Benchmarks
 {
-    public class LRUCache
+    public class LRUCacheBenchmark
     {
         private readonly Func<int, int> _lru1 = k => k;
 
@@ -18,7 +19,7 @@ namespace Benchmarks
         private int Iterations = 100000;
 
         [Benchmark]
-        public object LRUCacheST()
+        public object ApexLRUCache()
         {
             var lru = new LeastRecentlyUsedCache<int, int>(Capacity);
 
@@ -83,6 +84,104 @@ namespace Benchmarks
                     else
                     {
                         lru.GetOrAdd(i, _lru1);
+                    }
+                }
+                return lru;
+            }
+
+            throw new InvalidOperationException("Unsupported HitRate");
+        }
+
+        [Benchmark]
+        public object TEJacquesLRUCache()
+        {
+            var lru = new LRUCache<int, int>(Capacity);
+
+            if (HitRate == 0)
+            {
+                for (int i = 0; i < Iterations; ++i)
+                {
+                    if (!lru.TryGetValue(i, out _))
+                    {
+                        lru.Add(i, _lru1(i));
+                    }
+                }
+                return lru;
+            }
+
+            if (HitRate == 100)
+            {
+                for (int i = 0; i < Iterations; ++i)
+                {
+                    if (!lru.TryGetValue(0, out _))
+                    {
+                        lru.Add(0, _lru1(i));
+                    }
+                }
+                return lru;
+            }
+
+            if (HitRate == 50)
+            {
+                for (int i = 0; i < Iterations; ++i)
+                {
+                    if ((i % 2) == 0)
+                    {
+                        if (!lru.TryGetValue(0, out _))
+                        {
+                            lru.Add(0, _lru1(i));
+                        }
+                    }
+                    else
+                    {
+                        if (!lru.TryGetValue(i, out _))
+                        {
+                            lru.Add(i, _lru1(i));
+                        }
+                    }
+                }
+                return lru;
+            }
+
+            if (HitRate == 5)
+            {
+                for (int i = 0; i < Iterations; ++i)
+                {
+                    if ((i % 20) == 0)
+                    {
+                        if (!lru.TryGetValue(0, out _))
+                        {
+                            lru.Add(0, _lru1(i));
+                        }
+                    }
+                    else
+                    {
+                        if (!lru.TryGetValue(i, out _))
+                        {
+                            lru.Add(i, _lru1(i));
+                        }
+                    }
+                }
+                return lru;
+            }
+
+            if (HitRate == 95)
+            {
+                for (int i = 0; i < Iterations; ++i)
+                {
+                    if ((i % 20) != 0)
+                    {
+                        if (!lru.TryGetValue(0, out _))
+                        {
+                            lru.Add(0, _lru1(i));
+                        }
+                    }
+                    else
+                    {
+                        if (!lru.TryGetValue(i, out _))
+                        {
+                            lru.Add(i, _lru1(i));
+                        }
                     }
                 }
                 return lru;

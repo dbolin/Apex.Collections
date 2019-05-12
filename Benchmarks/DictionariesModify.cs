@@ -1,5 +1,6 @@
 ﻿using Apex.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
+using Sasa.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,7 +36,7 @@ namespace Benchmarks
         [Params(100, 10000, 1000000)]
         public int Count { get; set; }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public void SystemDictionary()
         {
             var t = new Dictionary<int, int>();
@@ -70,6 +71,20 @@ namespace Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 t = t.SetItem(i, i);
+            }
+            for (int i = 0; i < Count; ++i)
+            {
+                t = t.Remove(_access[i]);
+            }
+        }
+
+        [Benchmark]
+        public void SasaTrie()
+        {
+            var t = Trie<int, int>.Empty;
+            for (int i = 0; i < Count; ++i)
+            {
+                t = t.Add(i, i);
             }
             for (int i = 0; i < Count; ++i)
             {

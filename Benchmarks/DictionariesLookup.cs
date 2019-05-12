@@ -1,5 +1,6 @@
 ﻿using Apex.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
+using Sasa.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +12,7 @@ namespace Benchmarks
         private Dictionary<int, int> _dict;
         private ImmutableDictionary<int, int> _immDict;
         private ImmutableSortedDictionary<int, int> _immSortedDict;
+        private Trie<int, int> _sasaTrie;
         private HashMap<int, int> _apexHashMap;
         private List<int> _access;
 
@@ -25,12 +27,14 @@ namespace Benchmarks
             _dict = new Dictionary<int, int>();
             _immDict = ImmutableDictionary<int, int>.Empty;
             _immSortedDict = ImmutableSortedDictionary<int, int>.Empty;
+            _sasaTrie = Trie<int, int>.Empty;
             _apexHashMap = HashMap<int, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
                 _dict.Add(i, i);
                 _immDict = _immDict.SetItem(i, i);
                 _immSortedDict = _immSortedDict.SetItem(i, i);
+                _sasaTrie = _sasaTrie.Add(i, i);
                 _apexHashMap = _apexHashMap.SetItem(i, i);
                 _access.Add(i);
             }
@@ -46,7 +50,7 @@ namespace Benchmarks
             }
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public void SystemDictionary()
         {
             for(int t=0;t<Count;++t)
@@ -70,6 +74,15 @@ namespace Benchmarks
             for (int t = 0; t < Count; ++t)
             {
                 _immSortedDict.TryGetValue(_access[t], out _);
+            }
+        }
+
+        [Benchmark]
+        public void SasaTrie()
+        {
+            for (int t = 0; t < Count; ++t)
+            {
+                _sasaTrie.TryGetValue(_access[t], out _);
             }
         }
 

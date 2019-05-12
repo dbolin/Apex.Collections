@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
@@ -32,12 +31,12 @@ namespace Apex.Collections.Immutable
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public Branch Set(IEqualityComparer<K> equalityComparer, int hash, int level, K key, V value, out bool added)
             {
-                uint bitmask = GetBitMask(hash, level);
+                uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
-                    var newBranch = branch.Set(equalityComparer, hash, level + BitWidth, key, value, out added);
+                    var newBranch = branch.Set(equalityComparer, hash >> 5, level + BitWidth, key, value, out added);
                     return new Branch(BitMaskValues, BitMaskBranches, Values, Branches.SetItem(branchIndex, newBranch));
                 }
 
@@ -53,7 +52,7 @@ namespace Apex.Collections.Immutable
                     }
 
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash, key, value);
+                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value);
                     added = true;
                     return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, Values.RemoveAt(valueIndex), Branches.Insert(branchIndex, branch));
                 }
@@ -65,11 +64,11 @@ namespace Apex.Collections.Immutable
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public Branch Remove(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out bool removed)
             {
-                uint bitmask = GetBitMask(hash, level);
+                uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    var newBranch = Branches[branchIndex].Remove(equalityComparer, hash, level + BitWidth, key, out removed);
+                    var newBranch = Branches[branchIndex].Remove(equalityComparer, hash >> 5, level + BitWidth, key, out removed);
                     if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
                     {
                         return new Branch(BitMaskValues, BitMaskBranches & (~bitmask), Values, Branches.RemoveAt(branchIndex));
@@ -115,12 +114,12 @@ namespace Apex.Collections.Immutable
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public bool TryGet(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out V value)
             {
-                uint bitmask = GetBitMask(hash, level);
+                uint bitmask = GetBitMask(hash);
 
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    return Branches[branchIndex].TryGet(equalityComparer, hash, level + BitWidth, key, out value);
+                    return Branches[branchIndex].TryGet(equalityComparer, hash >> 5, level + BitWidth, key, out value);
                 }
 
                 if(TryGetValueInternal(bitmask, equalityComparer, key, out value))
@@ -170,17 +169,19 @@ namespace Apex.Collections.Immutable
                 return false;
             }
 
-            private static uint GetBitMask(int hash, int level)
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private static uint GetBitMask(int hash)
             {
-                int bitsFromHash = (hash >> level) & SubMask;
-                uint bitmask = (uint)(1 << bitsFromHash);
+                int bitsFromHash = hash & SubMask;
+                uint bitmask = 1U << bitsFromHash;
                 return bitmask;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             private static Branch CreateFrom(IEqualityComparer<K> equalityComparer, ValueNode node, int level, int hash, K key, V value)
             {
-                var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key), level);
-                var secondBitMask = GetBitMask(hash, level);
+                var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key) >> level);
+                var secondBitMask = GetBitMask(hash);
 
                 if (firstBitMask == secondBitMask)
                 {

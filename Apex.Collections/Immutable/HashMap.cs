@@ -19,19 +19,19 @@ namespace Apex.Collections.Immutable
 
         public HashMap<K, V> SetItem(K key, V value)
         {
-            var hash = key.GetHashCode();
+            var hash = _equalityComparer.GetHashCode(key);
             return new HashMap<K, V>(_root.Set(_equalityComparer, hash, 0, key, value, out bool added), added ? Count + 1 : Count);
         }
 
         public bool TryGetValue(K key, out V value)
         {
-            var hash = key.GetHashCode();
+            var hash = _equalityComparer.GetHashCode(key);
             return _root.TryGet(_equalityComparer, hash, 0, key, out value);
         }
 
         public HashMap<K, V> Remove(K key)
         {
-            var hash = key.GetHashCode();
+            var hash = _equalityComparer.GetHashCode(key);
             return new HashMap<K, V>(_root.Remove(_equalityComparer, hash, 0, key, out bool removed), removed ? Count - 1 : Count);
         }
 

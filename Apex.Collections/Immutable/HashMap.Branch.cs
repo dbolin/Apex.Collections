@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 
 namespace Apex.Collections.Immutable
@@ -27,6 +29,7 @@ namespace Apex.Collections.Immutable
                 Branches = branches;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public Branch Set(IEqualityComparer<K> equalityComparer, int hash, int level, K key, V value, out bool added)
             {
                 uint bitmask = GetBitMask(hash, level);
@@ -109,6 +112,7 @@ namespace Apex.Collections.Immutable
                 return this;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public bool TryGet(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out V value)
             {
                 uint bitmask = GetBitMask(hash, level);
@@ -119,6 +123,18 @@ namespace Apex.Collections.Immutable
                     return Branches[branchIndex].TryGet(equalityComparer, hash, level + BitWidth, key, out value);
                 }
 
+                if(TryGetValueInternal(hash, bitmask, equalityComparer, key, out value))
+                {
+                    return true;
+                }
+
+                // hash collision if this is max
+                return GetCollisionOrNone(equalityComparer, key, level, out value);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private bool TryGetValueInternal(int hash, uint bitmask, IEqualityComparer<K> equalityComparer, K key, out V value)
+            {
                 if ((BitMaskValues & bitmask) != 0)
                 {
                     var index = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
@@ -131,7 +147,13 @@ namespace Apex.Collections.Immutable
                     }
                 }
 
-                // hash collision
+                value = default;
+                return false;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private bool GetCollisionOrNone(IEqualityComparer<K> equalityComparer, K key, int level, out V value)
+            {
                 if (level >= MaxLevel)
                 {
                     for (int i = 0; i < Values.Length; ++i)

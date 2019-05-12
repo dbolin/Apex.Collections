@@ -10,65 +10,66 @@ namespace Apex.Collections.Immutable
         {
             private const int BitWidth = 5;
             private const int SubMask = (1 << BitWidth) - 1;
-            private const int MaxLevel = 32 / BitWidth;
+            private const int MaxLevel = 32;
 
-            public static readonly Branch Empty = new Branch(0, ImmutableArray<Node>.Empty);
+            public static readonly Branch Empty = new Branch(0, 0, ImmutableArray<ValueNode>.Empty, ImmutableArray<Branch>.Empty);
 
-            public uint BitMask { get; }
-            public ImmutableArray<Node> Nodes { get; }
+            public uint BitMaskValues { get; }
+            public uint BitMaskBranches { get; }
+            public ImmutableArray<ValueNode> Values { get; }
+            public ImmutableArray<Branch> Branches { get; }
 
-            public Branch(uint bitMask, ImmutableArray<Node> nodes)
+            public Branch(uint bitMaskValues, uint bitMaskBranches, ImmutableArray<ValueNode> nodes, ImmutableArray<Branch> branches)
             {
-                BitMask = bitMask;
-                Nodes = nodes;
+                BitMaskValues = bitMaskValues;
+                BitMaskBranches = bitMaskBranches;
+                Values = nodes;
+                Branches = branches;
             }
 
             public Branch Set(IEqualityComparer<K> equalityComparer, int hash, int level, K key, V value, out bool added)
             {
                 uint bitmask = GetBitMask(hash, level);
-                var index = (int)Popcnt.PopCount(BitMask & (bitmask - 1));
-
-                // Bit is already set
-                if ((BitMask & bitmask) != 0)
+                if ((BitMaskBranches & bitmask) != 0)
                 {
-                    // collision
-                    // 2 cases:
-                    // Single Key and Value
-                    // Pointer to Branch
-                    var node = Nodes[index];
-                    if (node.Branch != default)
-                    {
-                        var newBranch = node.Branch.Set(equalityComparer, hash, level + 1, key, value, out added);
-                        return new Branch(BitMask, Nodes.SetItem(index, new Node(newBranch)));
-                    }
+                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var branch = Branches[branchIndex];
+                    var newBranch = branch.Set(equalityComparer, hash, level + BitWidth, key, value, out added);
+                    return new Branch(BitMaskValues, BitMaskBranches, Values, Branches.SetItem(branchIndex, newBranch));
+                }
 
-                    if(node.FullHash == hash && equalityComparer.Equals(node.Key, key))
+                var valueIndex = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                if ((BitMaskValues & bitmask) != 0)
+                {
+                    var node = Values[valueIndex];
+
+                    if (node.FullHash == hash && equalityComparer.Equals(node.Key, key))
                     {
                         added = false;
-                        return new Branch(BitMask, Nodes.SetItem(index, new Node(hash, key, value)));
+                        return new Branch(BitMaskValues, BitMaskBranches, Values.SetItem(valueIndex, new ValueNode(hash, key, value)), Branches);
                     }
 
+                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var branch = CreateFrom(node, level + BitWidth, hash, key, value);
                     added = true;
-                    var branch = CreateFrom(node, level + 1, hash, key, value);
-                    var newNode = new Node(branch);
-                    return new Branch(BitMask, Nodes.SetItem(index, newNode));
+                    return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, Values.RemoveAt(valueIndex), Branches.Insert(branchIndex, branch));
                 }
 
                 added = true;
-                return new Branch(BitMask | bitmask, Nodes.Insert(index, new Node(hash, key, value)));
+                return new Branch(BitMaskValues | bitmask, BitMaskBranches, Values.Insert(valueIndex, new ValueNode(hash, key, value)), Branches);
             }
 
             public Branch Remove(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out bool removed)
             {
                 // hash collision
-                if (level == MaxLevel)
+                if (level >= MaxLevel)
                 {
-                    for (int i = 0; i < Nodes.Length; ++i)
+                    for (int i = 0; i < Values.Length; ++i)
                     {
-                        if (equalityComparer.Equals(Nodes[i].Key, key))
+                        if (equalityComparer.Equals(Values[i].Key, key))
                         {
                             removed = true;
-                            return new Branch(BitMask, Nodes.RemoveAt(i));
+                            return new Branch(0, 0, Values.RemoveAt(i), ImmutableArray<Branch>.Empty);
                         }
                     }
 
@@ -77,31 +78,31 @@ namespace Apex.Collections.Immutable
                 }
 
                 uint bitmask = GetBitMask(hash, level);
-                var index = (int)Popcnt.PopCount(BitMask & (bitmask - 1));
+                if ((BitMaskBranches & bitmask) != 0)
+                {
+                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var newBranch = Branches[branchIndex].Remove(equalityComparer, hash, level + BitWidth, key, out removed);
+                    if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
+                    {
+                        return new Branch(BitMaskValues, BitMaskBranches & (~bitmask), Values, Branches.RemoveAt(branchIndex));
+                    }
 
-                if ((BitMask & bitmask) == 0)
+                    return new Branch(BitMaskValues, BitMaskBranches, Values, Branches.SetItem(branchIndex, newBranch));
+                }
+
+                if ((BitMaskValues & bitmask) == 0)
                 {
                     removed = false;
                     return this;
                 }
 
-                var node = Nodes[index];
-                if (node.Branch != default)
-                {
-                    var newBranch = node.Branch.Remove(equalityComparer, hash, level + 1, key, out removed);
-                    if(newBranch.Nodes.Length == 0)
-                    {
-                        return new Branch(BitMask & (~bitmask), Nodes.RemoveAt(index));
-                    }
-
-                    var newNode = new Node(newBranch);
-                    return new Branch(BitMask, Nodes.SetItem(index, newNode));
-                }
+                var valueIndex = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                var node = Values[valueIndex];
 
                 if (node.FullHash == hash && equalityComparer.Equals(node.Key, key))
                 {
                     removed = true;
-                    return new Branch(BitMask & (~bitmask), Nodes.RemoveAt(index));
+                    return new Branch(BitMaskValues & (~bitmask), BitMaskBranches, Values.RemoveAt(valueIndex), Branches);
                 }
 
                 removed = false;
@@ -110,41 +111,37 @@ namespace Apex.Collections.Immutable
 
             public bool TryGet(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out V value)
             {
-                // hash collision
-                if (level == MaxLevel)
+                uint bitmask = GetBitMask(hash, level);
+
+                if ((BitMaskBranches & bitmask) != 0)
                 {
-                    for(int i=0;i<Nodes.Length;++i)
+                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    return Branches[branchIndex].TryGet(equalityComparer, hash, level + BitWidth, key, out value);
+                }
+
+                if ((BitMaskValues & bitmask) != 0)
+                {
+                    var index = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                    var node = Values[index];
+
+                    if (node.FullHash == hash && equalityComparer.Equals(node.Key, key))
                     {
-                        if(equalityComparer.Equals(Nodes[i].Key, key))
+                        value = node.Value;
+                        return true;
+                    }
+                }
+
+                // hash collision
+                if (level >= MaxLevel)
+                {
+                    for (int i = 0; i < Values.Length; ++i)
+                    {
+                        if (equalityComparer.Equals(Values[i].Key, key))
                         {
-                            value = Nodes[i].Value;
+                            value = Values[i].Value;
                             return true;
                         }
                     }
-
-                    value = default;
-                    return false;
-                }
-
-                uint bitmask = GetBitMask(hash, level);
-
-                if((BitMask & bitmask) == 0)
-                {
-                    value = default;
-                    return false;
-                }
-
-                var index = (int)Popcnt.PopCount(BitMask & (bitmask - 1));
-                var node = Nodes[index];
-                if(node.Branch != default)
-                {
-                    return node.Branch.TryGet(equalityComparer, hash, level + 1, key, out value);
-                }
-
-                if(node.FullHash == hash && equalityComparer.Equals(node.Key, key))
-                {
-                    value = node.Value;
-                    return true;
                 }
 
                 value = default;
@@ -153,12 +150,12 @@ namespace Apex.Collections.Immutable
 
             private static uint GetBitMask(int hash, int level)
             {
-                int bitsFromHash = (hash >> (level * BitWidth)) & SubMask;
+                int bitsFromHash = (hash >> level) & SubMask;
                 uint bitmask = (uint)(1 << bitsFromHash);
                 return bitmask;
             }
 
-            private static Branch CreateFrom(Node node, int level, int hash, K key, V value)
+            private static Branch CreateFrom(ValueNode node, int level, int hash, K key, V value)
             {
                 var firstBitMask = GetBitMask(node.FullHash, level);
                 var secondBitMask = GetBitMask(hash, level);
@@ -166,22 +163,23 @@ namespace Apex.Collections.Immutable
                 if (firstBitMask == secondBitMask)
                 {
                     // hash collision
-                    if(level == MaxLevel)
+                    if(level >= MaxLevel)
                     {
-                        return new Branch(0, ImmutableArray.Create(node, new Node(hash, key, value)));
+                        return new Branch(0, 0, ImmutableArray.Create(node, new ValueNode(hash, key, value)), ImmutableArray<Branch>.Empty);
                     }
 
-                    return new Branch(firstBitMask, ImmutableArray.Create(new Node(CreateFrom(node, level + 1, hash, key, value))));
+                    var nextBranch = CreateFrom(node, level + BitWidth, hash, key, value);
+                    return new Branch(0, firstBitMask, ImmutableArray<ValueNode>.Empty, ImmutableArray.Create(nextBranch));
                 }
 
                 var resultBitBask = firstBitMask | secondBitMask;
 
                 if(firstBitMask < secondBitMask)
                 {
-                    return new Branch(resultBitBask, ImmutableArray.Create(node, new Node(hash, key, value)));
+                    return new Branch(resultBitBask, 0, ImmutableArray.Create(node, new ValueNode(hash, key, value)), ImmutableArray<Branch>.Empty);
                 }
 
-                return new Branch(resultBitBask, ImmutableArray.Create(new Node(hash, key, value), node));
+                return new Branch(resultBitBask, 0, ImmutableArray.Create(new ValueNode(hash, key, value), node), ImmutableArray<Branch>.Empty);
             }
         }
     }

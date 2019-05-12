@@ -12,11 +12,13 @@ namespace Apex.Collections.Immutable
         internal struct EnumeratorState
         {
             public Branch Branch;
+            public bool OnValues;
             public int Index;
 
-            public EnumeratorState(Branch branch, int index)
+            public EnumeratorState(Branch branch, bool onValues, int index)
             {
                 Branch = branch;
+                OnValues = onValues;
                 Index = index;
             }
         }
@@ -31,13 +33,13 @@ namespace Apex.Collections.Immutable
             {
                 _start = start;
                 _stack = _stackPool.Get();
-                _current = new EnumeratorState(start, -1);
+                _current = new EnumeratorState(start, true, -1);
             }
 
             public KeyValuePair<K, V> Current {
                 get {
                     var branch = _current.Branch;
-                    var node = branch.Nodes[_current.Index];
+                    var node = branch.Values[_current.Index];
                     return new KeyValuePair<K, V>(node.Key, node.Value);
                 }
             }
@@ -53,8 +55,22 @@ namespace Apex.Collections.Immutable
             public bool MoveNext()
             {
                 var index = _current.Index + 1;
+                if (_current.OnValues)
+                {
+                    if (index >= _current.Branch.Values.Length)
+                    {
+                        index = 0;
+                        _current.OnValues = false;
+                    }
+                    else
+                    {
+                        _current.Index = index;
+                        return true;
+                    }
+                }
                 _current.Index = index;
-                if(index >= _current.Branch.Nodes.Length)
+
+                if (index >= _current.Branch.Branches.Length)
                 {
                     if(_stack.Count == 0)
                     {
@@ -64,20 +80,15 @@ namespace Apex.Collections.Immutable
                     return MoveNext();
                 }
 
-                var branch = _current.Branch.Nodes[index].Branch;
-                if (branch != default)
-                {
-                    _stack.Push(_current);
-                    _current = new EnumeratorState(branch, -1);
-                    return MoveNext();
-                }
-
-                return true;
+                var branch = _current.Branch.Branches[index];
+                _stack.Push(_current);
+                _current = new EnumeratorState(branch, true, -1);
+                return MoveNext();
             }
             public void Reset()
             {
                 _stack.Clear();
-                _current = new EnumeratorState(_start, -1);
+                _current = new EnumeratorState(_start, true, -1);
             }
         }
     }

@@ -5,6 +5,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Validators;
+using Sasa.Collections;
 using System;
 using System.Diagnostics;
 using System.Linq;

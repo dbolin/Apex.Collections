@@ -158,12 +158,6 @@ namespace Apex.Collections.Immutable
                 return bitmask;
             }
 
-            private uint UnsetBit(uint bitMask, int i)
-            {
-                int sl = i - 1;
-                return bitMask & (~(uint)(1 << sl));
-            }
-
             private static Branch CreateFrom(Node node, int level, int hash, K key, V value)
             {
                 var firstBitMask = GetBitMask(node.FullHash, level);

@@ -15,7 +15,7 @@ namespace Benchmarks
         private List<int> _access;
 
         [Params(100, 10000, 1000000)]
-        public int Capacity { get; set; }
+        public int Count { get; set; }
 
         [GlobalSetup]
         public void Init()
@@ -26,7 +26,7 @@ namespace Benchmarks
             _immDict = ImmutableDictionary<int, int>.Empty;
             _immSortedDict = ImmutableSortedDictionary<int, int>.Empty;
             _apexHashMap = HashMap<int, int>.Empty;
-            for (int i = 0; i < Capacity; ++i)
+            for (int i = 0; i < Count; ++i)
             {
                 _dict.Add(i, i);
                 _immDict = _immDict.SetItem(i, i);
@@ -49,7 +49,7 @@ namespace Benchmarks
         [Benchmark]
         public void SystemDictionary()
         {
-            for(int t=0;t<Capacity;++t)
+            for(int t=0;t<Count;++t)
             {
                 _dict.TryGetValue(_access[t], out _);
             }
@@ -58,7 +58,7 @@ namespace Benchmarks
         [Benchmark]
         public void SystemImmutableDictionary()
         {
-            for (int t = 0; t < Capacity; ++t)
+            for (int t = 0; t < Count; ++t)
             {
                 _immDict.TryGetValue(_access[t], out _);
             }
@@ -67,7 +67,7 @@ namespace Benchmarks
         [Benchmark]
         public void SystemSortedImmutableDictionary()
         {
-            for (int t = 0; t < Capacity; ++t)
+            for (int t = 0; t < Count; ++t)
             {
                 _immSortedDict.TryGetValue(_access[t], out _);
             }
@@ -76,7 +76,7 @@ namespace Benchmarks
         [Benchmark]
         public void ApexHashMap()
         {
-            for (int t = 0; t < Capacity; ++t)
+            for (int t = 0; t < Count; ++t)
             {
                 _apexHashMap.TryGetValue(_access[t], out _);
             }

@@ -4,14 +4,12 @@
     {
         internal struct ValueNode
         {
-            public ValueNode(int hash, K key, V value)
+            public ValueNode(K key, V value)
             {
-                FullHash = hash;
                 Key = key;
                 Value = value;
             }
 
-            public int FullHash { get; }
             public K Key { get; }
             public V Value { get; }
         }

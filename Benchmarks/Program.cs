@@ -50,33 +50,16 @@ namespace Benchmarks
             }
             */
             /*
-            var sw = new Stopwatch();
-
             var x = HashMap<int, int>.Empty;
-            for (int i = 0; i < 1000000; ++i)
+            for (int i = 0; i < 100; ++i)
             {
                 x = x.SetItem(i, i);
             }
 
-            for (int j = 0; j < 100000; ++j)
+            while(true)
             {
-                sw.Restart();
-                //while(true)
-                {
-                    for (int i = 0; i < 1000000; ++i)
-                    {
-                        x.TryGetValue(i, out _);
-                    }
-                }
-                sw.Stop();
-
-                if (sw.Elapsed.TotalMilliseconds > 3)
-                {
-                    Console.WriteLine("{0}: {1}", j, sw.Elapsed.TotalMilliseconds);
-                }
+                foreach (var kvp in x) ;
             }
-
-            return;
             */
 
             var summaries = BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(config: new Config());

@@ -1,6 +1,8 @@
 ﻿using Apex.Collections.Immutable;
 using FluentAssertions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Apex.Collections.Tests
@@ -51,6 +53,24 @@ namespace Apex.Collections.Tests
             {
                 sut = sut.Remove(i);
                 sut.Count.Should().Be(9999 - i);
+            }
+        }
+
+        [Fact]
+        public void Enumeration()
+        {
+            var sut = HashMap<int, int>.Empty;
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut = sut.SetItem(i, i);
+            }
+
+            var enumerated = sut.OrderBy(x => x.Key).ToList();
+            for (int i = 0; i < 10000; ++i)
+            {
+                enumerated[i].Key.Should().Be(i);
+                enumerated[i].Value.Should().Be(i);
             }
         }
 

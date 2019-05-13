@@ -22,7 +22,7 @@ namespace Benchmarks
             Add(DefaultConfig.Instance.GetExporters().ToArray()); // manual config has no exporters by default
             Add(DefaultConfig.Instance.GetColumnProviders().ToArray()); // manual config has no columns by default
 
-            Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp30).WithGcServer(false));
+            Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp30).WithGcServer(true));
             //Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp22).WithGcServer(true));
             //Add(Job.Clr.With(CsProjClassicNetToolchain.Net472));
             //Add(Job.CoreRT);

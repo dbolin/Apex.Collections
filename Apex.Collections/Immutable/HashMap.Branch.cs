@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 
@@ -13,14 +13,14 @@ namespace Apex.Collections.Immutable
             private const int SubMask = (1 << BitWidth) - 1;
             private const int MaxLevel = 32;
 
-            public static readonly Branch Empty = new Branch(0, 0, ImmutableArray<ValueNode>.Empty, ImmutableArray<Branch>.Empty);
+            public static readonly Branch Empty = new Branch(0, 0, Array.Empty<ValueNode>(), Array.Empty<Branch>());
 
             public uint BitMaskValues { get; }
             public uint BitMaskBranches { get; }
-            public ImmutableArray<ValueNode> Values { get; }
-            public ImmutableArray<Branch> Branches { get; }
+            public ValueNode[] Values { get; }
+            public Branch[] Branches { get; }
 
-            public Branch(uint bitMaskValues, uint bitMaskBranches, ImmutableArray<ValueNode> nodes, ImmutableArray<Branch> branches)
+            public Branch(uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
             {
                 BitMaskValues = bitMaskValues;
                 BitMaskBranches = bitMaskBranches;
@@ -37,7 +37,7 @@ namespace Apex.Collections.Immutable
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
                     var newBranch = branch.Set(equalityComparer, hash >> 5, level + BitWidth, key, value, out added);
-                    return new Branch(BitMaskValues, BitMaskBranches, Values, Branches.SetItem(branchIndex, newBranch));
+                    return new Branch(BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
                 }
 
                 var valueIndex = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
@@ -48,17 +48,17 @@ namespace Apex.Collections.Immutable
                     if (equalityComparer.Equals(node.Key, key))
                     {
                         added = false;
-                        return new Branch(BitMaskValues, BitMaskBranches, Values.SetItem(valueIndex, new ValueNode(key, value)), Branches);
+                        return new Branch(BitMaskValues, BitMaskBranches, SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
                     }
 
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value);
                     added = true;
-                    return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, Values.RemoveAt(valueIndex), Branches.Insert(branchIndex, branch));
+                    return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                 }
 
                 added = true;
-                return new Branch(BitMaskValues | bitmask, BitMaskBranches, Values.Insert(valueIndex, new ValueNode(key, value)), Branches);
+                return new Branch(BitMaskValues | bitmask, BitMaskBranches, Insert(Values, valueIndex, new ValueNode(key, value)), Branches);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -71,10 +71,10 @@ namespace Apex.Collections.Immutable
                     var newBranch = Branches[branchIndex].Remove(equalityComparer, hash >> 5, level + BitWidth, key, out removed);
                     if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
                     {
-                        return new Branch(BitMaskValues, BitMaskBranches & (~bitmask), Values, Branches.RemoveAt(branchIndex));
+                        return new Branch(BitMaskValues, BitMaskBranches & (~bitmask), Values, RemoveAt(Branches, branchIndex));
                     }
 
-                    return new Branch(BitMaskValues, BitMaskBranches, Values, Branches.SetItem(branchIndex, newBranch));
+                    return new Branch(BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
                 }
 
                 if ((BitMaskValues & bitmask) != 0)
@@ -84,7 +84,7 @@ namespace Apex.Collections.Immutable
                     if (equalityComparer.Equals(node.Key, key))
                     {
                         removed = true;
-                        return new Branch(BitMaskValues & (~bitmask), BitMaskBranches, Values.RemoveAt(valueIndex), Branches);
+                        return new Branch(BitMaskValues & (~bitmask), BitMaskBranches, RemoveAt(Values, valueIndex), Branches);
                     }
                 }
 
@@ -102,7 +102,7 @@ namespace Apex.Collections.Immutable
                         if (equalityComparer.Equals(Values[i].Key, key))
                         {
                             removed = true;
-                            return new Branch(0, 0, Values.RemoveAt(i), ImmutableArray<Branch>.Empty);
+                            return new Branch(0, 0, RemoveAt(Values, i), Array.Empty<Branch>());
                         }
                     }
                 }
@@ -188,21 +188,77 @@ namespace Apex.Collections.Immutable
                     // hash collision
                     if(level >= MaxLevel)
                     {
-                        return new Branch(0, 0, ImmutableArray.Create(node, new ValueNode(key, value)), ImmutableArray<Branch>.Empty);
+                        return new Branch(0, 0, new [] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
                     }
 
                     var nextBranch = CreateFrom(equalityComparer, node, level + BitWidth, hash, key, value);
-                    return new Branch(0, firstBitMask, ImmutableArray<ValueNode>.Empty, ImmutableArray.Create(nextBranch));
+                    return new Branch(0, firstBitMask, Array.Empty<ValueNode>(), new [] { nextBranch });
                 }
 
                 var resultBitBask = firstBitMask | secondBitMask;
 
                 if(firstBitMask < secondBitMask)
                 {
-                    return new Branch(resultBitBask, 0, ImmutableArray.Create(node, new ValueNode(key, value)), ImmutableArray<Branch>.Empty);
+                    return new Branch(resultBitBask, 0, new[] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
                 }
 
-                return new Branch(resultBitBask, 0, ImmutableArray.Create(new ValueNode(key, value), node), ImmutableArray<Branch>.Empty);
+                return new Branch(resultBitBask, 0, new[] { new ValueNode(key, value), node }, Array.Empty<Branch>());
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private static unsafe T[] SetItem<T>(T[] array, int index, T item)
+            {
+                if (array.Length == 1)
+                {
+                    return new T[] { item };
+                }
+
+                T[] tmp = new T[array.Length];
+                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * array.Length));
+                tmp[index] = item;
+
+                return tmp;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private static unsafe T[] Insert<T>(T[] array, int index, T item)
+            {
+                if (array.Length == 0)
+                {
+                    return new T[] { item };
+                }
+
+                T[] tmp = new T[array.Length + 1];
+                tmp[index] = item;
+
+                if (index != 0)
+                {
+                    Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * index));
+                }
+                if (index != array.Length)
+                {
+                    Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[index + 1]), Unsafe.AsPointer(ref array[index]), (uint)(Unsafe.SizeOf<T>() * (array.Length - index)));
+                }
+
+                return tmp;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            private static unsafe T[] RemoveAt<T>(T[] array, int index)
+            {
+                if (array.Length == 1)
+                {
+                    return Array.Empty<T>();
+                }
+
+                T[] tmp = new T[array.Length - 1];
+                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * index));
+                if (index < tmp.Length)
+                {
+                    Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[index]), Unsafe.AsPointer(ref array[index + 1]), (uint)(Unsafe.SizeOf<T>() * (array.Length - index - 1)));
+                }
+
+                return tmp;
             }
         }
     }

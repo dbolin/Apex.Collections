@@ -1,4 +1,6 @@
 
+# Immutable.HashMap<K, V>
+
 ## Add and remove
 
 |                    Method |   Count |             Mean | Ratio | RatioSD |      Gen 0 |      Gen 1 |     Gen 2 |     Allocated |
@@ -65,3 +67,23 @@
 |                  SasaTrie | 1000000 |  54,699,299.2 ns |  9.18 |    0.18 | 666.6667 |     - |     - | 2985056 B |
 |               ApexHashMap | 1000000 |  13,195,883.6 ns |  2.21 |    0.02 |        - |     - |     - |         - |
 
+## Serialization
+
+Using [Apex.Serialization](https://github.com/dbolin/Apex.Serialization)
+
+Each structure maps <int, int> and contains 10000 entries
+
+Allocated bytes for deserialization is the exact size of the structure in memory
+
+|                Method |        Mean |      Error |     StdDev |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |
+|---------------------- |------------:|-----------:|-----------:|---------:|--------:|--------:|----------:|
+|   SerializeDictionary |    95.18 us |  0.7011 us |  0.6558 us |        - |       - |       - |         - |
+|           SerializeID |   951.84 us |  5.4402 us |  4.5428 us |        - |       - |       - |         - |
+|          SerializeISD |   640.08 us |  3.5673 us |  3.3369 us |        - |       - |       - |         - |
+|     SerializeSasaTrie |    78.08 us |  0.4303 us |  0.4025 us |        - |       - |       - |         - |
+|      SerializeHashMap |   118.04 us |  0.5976 us |  0.5590 us |        - |       - |       - |         - |
+| DeserializeDictionary |   283.35 us |  5.6257 us | 11.3643 us |  25.8789 | 23.9258 | 23.9258 |  202334 B |
+|         DeserializeID | 1,622.02 us | 32.5404 us | 42.3118 us | 126.9531 | 62.5000 |       - |  560200 B |
+|        DeserializeISD | 1,115.01 us | 14.3496 us | 12.7206 us | 121.0938 | 52.7344 |       - |  480144 B |
+|   DeserializeSasaTrie |    91.44 us |  3.9879 us |  3.7303 us |  32.3486 |  6.5918 |       - |  130752 B |
+|    DeserializeHashMap |   178.77 us |  3.9713 us |  4.4141 us |  39.0625 |  7.5684 |       - |  156208 B |

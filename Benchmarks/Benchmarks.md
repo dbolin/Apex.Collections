@@ -1,4 +1,6 @@
 
+# Immutable.HashMap<K, V>
+
 ## Add and remove
 
 |                    Method |   Count |             Mean | Ratio | RatioSD |      Gen 0 |      Gen 1 |     Gen 2 |     Allocated |

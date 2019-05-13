@@ -1,6 +1,7 @@
 # Apex.Collections
 Alternative or extended collection types for .NET
 
+[![Build Status](https://numenfall.visualstudio.com/Games/_apis/build/status/Apex.Collections-CI?branchName=master)](https://numenfall.visualstudio.com/Games/_build/latest?definitionId=6&branchName=master)
 
 ## Contents
 

@@ -48,6 +48,7 @@ namespace Apex.Collections.Immutable
 
             public void Dispose()
             {
+                _stack.Clear();
                 _stackPool.Return(_stack);
                 _stack = null;
                 _current = default;

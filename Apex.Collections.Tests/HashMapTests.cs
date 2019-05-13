@@ -39,6 +39,25 @@ namespace Apex.Collections.Tests
         }
 
         [Fact]
+        public void ReverseInsertOrder()
+        {
+            var sut = HashMap<int, int>.Empty;
+            sut = sut.SetItem(5, 5);
+            sut = sut.SetItem(1, 1);
+
+            sut.Count.Should().Be(2);
+        }
+
+        [Fact]
+        public void RemoveNonExisting()
+        {
+            var sut = HashMap<int, int>.Empty;
+            sut = sut.SetItem(1, 1);
+            sut = sut.Remove(2);
+            sut.Count.Should().Be(1);
+        }
+
+        [Fact]
         public void ManyValues()
         {
             var sut = HashMap<int, int>.Empty;

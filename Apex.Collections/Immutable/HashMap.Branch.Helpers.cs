@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Apex.Collections.Immutable
 {
-    public sealed partial class HashMap<K, V>
+    public sealed partial class HashMap<TKey, TValue>
     {
         internal sealed partial class Branch
         {

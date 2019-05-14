@@ -4,21 +4,21 @@ using System.Collections.Generic;
 
 namespace Apex.Collections
 {
-    public sealed class LeastRecentlyUsedCache<K, V> : IEnumerable<KeyValuePair<K, V>>
+    public sealed class LeastRecentlyUsedCache<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
-        private readonly Dictionary<K, LinkedListNode<KeyValuePair<K, V>>> _lookup;
-        private readonly LinkedList<KeyValuePair<K, V>> _list;
+        private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>> _lookup;
+        private readonly LinkedList<KeyValuePair<TKey, TValue>> _list;
 
         public int Capacity { get; }
 
-        public LeastRecentlyUsedCache(int capacity, IEqualityComparer<K> equalityComparer = null)
+        public LeastRecentlyUsedCache(int capacity, IEqualityComparer<TKey> equalityComparer = null)
         {
             Capacity = capacity;
-            _lookup = new Dictionary<K, LinkedListNode<KeyValuePair<K, V>>>(capacity, equalityComparer ?? EqualityComparer<K>.Default);
-            _list = new LinkedList<KeyValuePair<K, V>>();
+            _lookup = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(capacity, equalityComparer ?? EqualityComparer<TKey>.Default);
+            _list = new LinkedList<KeyValuePair<TKey, TValue>>();
         }
 
-        public V GetOrAdd(K key, Func<K, V> valueCreator)
+        public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueCreator)
         {
             if (Get(key, out var result))
             {
@@ -40,7 +40,7 @@ namespace Apex.Collections
             return result;
         }
 
-        private LinkedListNode<KeyValuePair<K, V>> RemoveFirst()
+        private LinkedListNode<KeyValuePair<TKey, TValue>> RemoveFirst()
         {
             var lru = _list.First;
             _lookup.Remove(lru.Value.Key);
@@ -48,20 +48,20 @@ namespace Apex.Collections
             return lru;
         }
 
-        private void Add(K key, V value)
+        private void Add(TKey key, TValue value)
         {
-            var newNode = _list.AddLast(new KeyValuePair<K, V>(key, value));
+            var newNode = _list.AddLast(new KeyValuePair<TKey, TValue>(key, value));
             _lookup.Add(key, newNode);
         }
 
-        private void AddFromExistingNode(K key, V result, LinkedListNode<KeyValuePair<K, V>> node)
+        private void AddFromExistingNode(TKey key, TValue result, LinkedListNode<KeyValuePair<TKey, TValue>> node)
         {
-            node.Value = new KeyValuePair<K, V>(key, result);
+            node.Value = new KeyValuePair<TKey, TValue>(key, result);
             _list.AddLast(node);
             _lookup.Add(key, node);
         }
 
-        private bool Get(K key, out V value)
+        private bool Get(TKey key, out TValue value)
         {
             if (_lookup.TryGetValue(key, out var node))
             {
@@ -75,7 +75,7 @@ namespace Apex.Collections
             return false;
         }
 
-        public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _list.GetEnumerator();
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => _list.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
     }
 }

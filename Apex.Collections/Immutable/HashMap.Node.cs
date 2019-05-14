@@ -1,17 +1,17 @@
 ﻿namespace Apex.Collections.Immutable
 {
-    public sealed partial class HashMap<K, V>
+    public sealed partial class HashMap<TKey, TValue>
     {
         internal struct ValueNode
         {
-            public ValueNode(K key, V value)
+            public ValueNode(TKey key, TValue value)
             {
                 Key = key;
                 Value = value;
             }
 
-            public K Key { get; }
-            public V Value { get; }
+            public TKey Key { get; }
+            public TValue Value { get; }
         }
     }
 }

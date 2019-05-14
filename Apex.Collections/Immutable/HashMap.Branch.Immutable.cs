@@ -5,12 +5,12 @@ using System.Runtime.Intrinsics.X86;
 
 namespace Apex.Collections.Immutable
 {
-    public sealed partial class HashMap<K, V>
+    public sealed partial class HashMap<TKey, TValue>
     {
         internal sealed partial class Branch
         {
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch Set(IEqualityComparer<K> equalityComparer, int hash, int level, K key, V value, out bool added)
+            public Branch Set(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, TValue value, out bool added)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
@@ -43,7 +43,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch Remove(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out bool removed)
+            public Branch Remove(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out bool removed)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
@@ -73,7 +73,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private Branch RemoveCollisionOrNone(IEqualityComparer<K> equalityComparer, int level, K key, out bool removed)
+            private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer, int level, TKey key, out bool removed)
             {
                 // hash collision
                 if (level >= MaxLevel)
@@ -93,7 +93,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public bool TryGet(IEqualityComparer<K> equalityComparer, int hash, int level, K key, out V value)
+            public bool TryGet(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out TValue value)
             {
                 uint bitmask = GetBitMask(hash);
 
@@ -113,7 +113,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private bool TryGetValueInternal(uint bitmask, IEqualityComparer<K> equalityComparer, K key, out V value)
+            private bool TryGetValueInternal(uint bitmask, IEqualityComparer<TKey> equalityComparer, TKey key, out TValue value)
             {
                 if ((BitMaskValues & bitmask) != 0)
                 {
@@ -132,7 +132,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private bool GetCollisionOrNone(IEqualityComparer<K> equalityComparer, K key, int level, out V value)
+            private bool GetCollisionOrNone(IEqualityComparer<TKey> equalityComparer, TKey key, int level, out TValue value)
             {
                 if (level >= MaxLevel)
                 {
@@ -151,7 +151,7 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private static Branch CreateFrom(IEqualityComparer<K> equalityComparer, ValueNode node, int level, int hash, K key, V value)
+            private static Branch CreateFrom(IEqualityComparer<TKey> equalityComparer, ValueNode node, int level, int hash, TKey key, TValue value)
             {
                 var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key) >> level);
                 var secondBitMask = GetBitMask(hash);

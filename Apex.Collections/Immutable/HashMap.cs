@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Apex.Collections.Immutable
 {
-    public sealed partial class HashMap<K, V> : IEnumerable<KeyValuePair<K, V>>
+    public sealed partial class HashMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
-        public static readonly HashMap<K, V> Empty = new HashMap<K, V>(Branch.Empty, 0);
+        public static readonly HashMap<TKey, TValue> Empty = new HashMap<TKey, TValue>(Branch.Empty, 0);
 
         private readonly Branch _root;
-        private readonly IEqualityComparer<K> _equalityComparer = EqualityComparer<K>.Default;
+        private readonly IEqualityComparer<TKey> _equalityComparer = EqualityComparer<TKey>.Default;
         public int Count { get; }
 
         internal HashMap(Branch root, int count)
@@ -17,26 +17,26 @@ namespace Apex.Collections.Immutable
             Count = count;
         }
 
-        public HashMap<K, V> SetItem(K key, V value)
+        public HashMap<TKey, TValue> SetItem(TKey key, TValue value)
         {
             var hash = _equalityComparer.GetHashCode(key);
-            return new HashMap<K, V>(_root.Set(_equalityComparer, hash, 0, key, value, out bool added), added ? Count + 1 : Count);
+            return new HashMap<TKey, TValue>(_root.Set(_equalityComparer, hash, 0, key, value, out bool added), added ? Count + 1 : Count);
         }
 
-        public bool TryGetValue(K key, out V value)
+        public bool TryGetValue(TKey key, out TValue value)
         {
             var hash = _equalityComparer.GetHashCode(key);
             return _root.TryGet(_equalityComparer, hash, 0, key, out value);
         }
 
-        public HashMap<K, V> Remove(K key)
+        public HashMap<TKey, TValue> Remove(TKey key)
         {
             var hash = _equalityComparer.GetHashCode(key);
-            return new HashMap<K, V>(_root.Remove(_equalityComparer, hash, 0, key, out bool removed), removed ? Count - 1 : Count);
+            return new HashMap<TKey, TValue>(_root.Remove(_equalityComparer, hash, 0, key, out bool removed), removed ? Count - 1 : Count);
         }
 
         public Enumerator GetEnumerator() => new Enumerator(_root);
-        IEnumerator<KeyValuePair<K, V>> IEnumerable<KeyValuePair<K, V>>.GetEnumerator() => GetEnumerator();
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

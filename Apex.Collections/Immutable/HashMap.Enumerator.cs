@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Apex.Collections.Immutable
 {
-    public sealed partial class HashMap<K, V>
+    public sealed partial class HashMap<TKey, TValue>
     {
         internal static readonly ObjectPool<Stack<EnumeratorState>> _stackPool
             = new DefaultObjectPool<Stack<EnumeratorState>>(new DefaultPooledObjectPolicy<Stack<EnumeratorState>>());
@@ -23,7 +23,7 @@ namespace Apex.Collections.Immutable
             }
         }
 
-        public struct Enumerator : IEnumerator<KeyValuePair<K, V>>
+        public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
             private readonly Branch _start;
             private Stack<EnumeratorState> _stack;
@@ -36,11 +36,11 @@ namespace Apex.Collections.Immutable
                 _current = new EnumeratorState(start, true, -1);
             }
 
-            public KeyValuePair<K, V> Current {
+            public KeyValuePair<TKey, TValue> Current {
                 get {
                     var branch = _current.Branch;
                     var node = branch.Values[_current.Index];
-                    return new KeyValuePair<K, V>(node.Key, node.Value);
+                    return new KeyValuePair<TKey, TValue>(node.Key, node.Value);
                 }
             }
 

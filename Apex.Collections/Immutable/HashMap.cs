@@ -26,7 +26,7 @@ namespace Apex.Collections.Immutable
         public HashMap<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
         {
             var builder = ToBuilder();
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 builder.SetItem(item.Key, item.Value);
             }

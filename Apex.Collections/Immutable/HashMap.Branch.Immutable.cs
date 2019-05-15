@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 
@@ -152,18 +151,18 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private static unsafe T[] SetItem<T>(T[] array, int index, T item)
+            private static T[] SetItem<T>(T[] array, int index, T item)
             {
-                if (array.Length == 1)
+                var length = array.Length;
+                var newArray = new T[length];
+
+                if (length != 1)
                 {
-                    return new T[] { item };
+                    Array.Copy(array, 0, newArray, 0, array.Length);
                 }
+                newArray[index] = item;
 
-                T[] tmp = new T[array.Length];
-                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * array.Length));
-                tmp[index] = item;
-
-                return tmp;
+                return newArray;
             }
         }
     }

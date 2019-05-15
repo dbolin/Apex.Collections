@@ -10,6 +10,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Benchmarks
 {
@@ -40,7 +41,28 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
+            /*
+            Task.Run(() =>
+            {
+                Test();
+            });
+
+            Test();
+            */
+            //Test();
+
             var summaries = BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(config: new Config());
+        }
+
+        static void Test()
+        {
+            var x = new DictionariesBuilder { Count = 1000000 };
+
+            while (true)
+            {
+                x.Init();
+                x.ApexHashMap();
+            }
         }
     }
 }

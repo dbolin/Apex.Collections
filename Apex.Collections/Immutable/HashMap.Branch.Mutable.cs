@@ -10,25 +10,28 @@ namespace Apex.Collections.Immutable
         internal sealed partial class Branch
         {
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch SetMutate(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, TValue value, out bool added, out bool mutated)
+            public Branch SetMutate(IEqualityComparer<TKey> equalityComparer,
+                int hash, int level, TKey key, TValue value, out bool added, out bool mutated)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
-                    var newBranch = branch.SetMutate(equalityComparer, hash >> 5, level + BitWidth, key, value, out added, out var newBranchMutated);
+                    var newBranch = branch.SetMutate(equalityComparer,
+                        hash >> 5, level + BitWidth, key, value, out added, out var newBranchMutated);
 
                     if(Frozen)
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
+                        return new Branch(false, BitMaskValues, BitMaskBranches, Values,
+                            SetItem(Branches, branchIndex, newBranch));
                     }
 
                     mutated = true;
                     if(!newBranchMutated)
                     {
-                        Branches = SetItem(Branches, branchIndex, newBranch);
+                        Branches[branchIndex] = newBranch;
                     }
 
                     return this;
@@ -45,7 +48,8 @@ namespace Apex.Collections.Immutable
                         if(Frozen)
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues, BitMaskBranches, SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
+                            return new Branch(false, BitMaskValues, BitMaskBranches,
+                                SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
                         }
 
                         mutated = true;
@@ -60,7 +64,8 @@ namespace Apex.Collections.Immutable
                     if(Frozen)
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
+                        return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches | bitmask,
+                            RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                     }
 
                     mutated = true;
@@ -75,7 +80,8 @@ namespace Apex.Collections.Immutable
                 if(Frozen)
                 {
                     mutated = false;
-                    return new Branch(false, BitMaskValues | bitmask, BitMaskBranches, Insert(Values, valueIndex, new ValueNode(key, value)), Branches);
+                    return new Branch(false, BitMaskValues | bitmask, BitMaskBranches,
+                        Insert(Values, valueIndex, new ValueNode(key, value)), Branches);
                 }
 
                 mutated = true;
@@ -85,19 +91,22 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch RemoveMutate(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out bool removed, out bool mutated)
+            public Branch RemoveMutate(IEqualityComparer<TKey> equalityComparer,
+                int hash, int level, TKey key, out bool removed, out bool mutated)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    var newBranch = Branches[branchIndex].RemoveMutate(equalityComparer, hash >> 5, level + BitWidth, key, out removed, out var newBranchMutated);
+                    var newBranch = Branches[branchIndex].RemoveMutate(equalityComparer,
+                        hash >> 5, level + BitWidth, key, out removed, out var newBranchMutated);
                     if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
                     {
                         if(Frozen)
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues, BitMaskBranches & (~bitmask), Values, RemoveAt(Branches, branchIndex));
+                            return new Branch(false, BitMaskValues, BitMaskBranches & (~bitmask), Values,
+                                RemoveAt(Branches, branchIndex));
                         }
 
                         mutated = true;
@@ -115,7 +124,8 @@ namespace Apex.Collections.Immutable
                     if (Frozen)
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
+                        return new Branch(false, BitMaskValues, BitMaskBranches, Values,
+                            SetItem(Branches, branchIndex, newBranch));
                     }
 
                     mutated = true;
@@ -137,7 +147,8 @@ namespace Apex.Collections.Immutable
                         if (Frozen)
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches, RemoveAt(Values, valueIndex), Branches);
+                            return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches,
+                                RemoveAt(Values, valueIndex), Branches);
                         }
 
                         mutated = true;
@@ -151,7 +162,8 @@ namespace Apex.Collections.Immutable
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer, int level, TKey key, out bool removed, out bool mutated)
+            private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer,
+                int level, TKey key, out bool removed, out bool mutated)
             {
                 // hash collision
                 if (level >= MaxLevel)
@@ -180,6 +192,7 @@ namespace Apex.Collections.Immutable
                 return this;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public void Freeze()
             {
                 for (int i = Branches.Length - 1; i >= 0; --i)

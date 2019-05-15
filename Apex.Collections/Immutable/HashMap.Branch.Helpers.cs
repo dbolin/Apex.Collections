@@ -15,7 +15,8 @@ namespace Apex.Collections.Immutable
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static Branch CreateFrom(IEqualityComparer<TKey> equalityComparer, ValueNode node, int level, int hash, TKey key, TValue value, bool mutable)
+        private static Branch CreateFrom(IEqualityComparer<TKey> equalityComparer, ValueNode node, int level, int hash, TKey key, TValue value,
+            bool mutable)
         {
             var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key) >> level);
             var secondBitMask = GetBitMask(hash);
@@ -25,7 +26,10 @@ namespace Apex.Collections.Immutable
                 // hash collision
                 if (level >= Branch.MaxLevel)
                 {
-                    return new Branch(0, 0, new[] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
+                    var newNodesInner = new ValueNode[2];
+                    newNodesInner[0] = node;
+                    newNodesInner[1] = new ValueNode(key, value);
+                    return new Branch(0, 0, newNodesInner, Array.Empty<Branch>());
                 }
 
                 var nextBranch = CreateFrom(equalityComparer, node, level + Branch.BitWidth, hash, key, value, mutable);
@@ -34,53 +38,59 @@ namespace Apex.Collections.Immutable
 
             var resultBitBask = firstBitMask | secondBitMask;
 
+            var newNodes = new ValueNode[2];
             if (firstBitMask < secondBitMask)
             {
-                return new Branch(!mutable, resultBitBask, 0, new[] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
+                newNodes[0] = node;
+                newNodes[1] = new ValueNode(key, value);
+                return new Branch(!mutable, resultBitBask, 0, newNodes, Array.Empty<Branch>());
             }
 
-            return new Branch(!mutable, resultBitBask, 0, new[] { new ValueNode(key, value), node }, Array.Empty<Branch>());
+            newNodes[0] = new ValueNode(key, value);
+            newNodes[1] = node;
+            return new Branch(!mutable, resultBitBask, 0, newNodes, Array.Empty<Branch>());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static unsafe T[] Insert<T>(T[] array, int index, T item)
+        private static T[] Insert<T>(T[] array, int index, T item)
         {
-            if (array.Length == 0)
-            {
-                return new T[] { item };
-            }
-
-            T[] tmp = new T[array.Length + 1];
-            tmp[index] = item;
+            var newArray = new T[array.Length + 1];
+            newArray[index] = item;
 
             if (index != 0)
             {
-                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * index));
+                Array.Copy(array, 0, newArray, 0, index);
             }
             if (index != array.Length)
             {
-                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[index + 1]), Unsafe.AsPointer(ref array[index]), (uint)(Unsafe.SizeOf<T>() * (array.Length - index)));
+                Array.Copy(array, index, newArray, index + 1, array.Length - index);
             }
 
-            return tmp;
+            return newArray;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static unsafe T[] RemoveAt<T>(T[] array, int index)
+        private static T[] RemoveAt<T>(T[] array, int index)
         {
             if (array.Length == 1)
             {
                 return Array.Empty<T>();
             }
 
-            T[] tmp = new T[array.Length - 1];
-            Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[0]), Unsafe.AsPointer(ref array[0]), (uint)(Unsafe.SizeOf<T>() * index));
-            if (index < tmp.Length)
+            var newArray = new T[array.Length - 1];
+
+            if (array.Length == 1)
             {
-                Unsafe.CopyBlock(Unsafe.AsPointer(ref tmp[index]), Unsafe.AsPointer(ref array[index + 1]), (uint)(Unsafe.SizeOf<T>() * (array.Length - index - 1)));
+                return newArray;
             }
 
-            return tmp;
+            Array.Copy(array, 0, newArray, 0, index);
+            if (index < newArray.Length)
+            {
+                Array.Copy(array, index + 1, newArray, index, array.Length - index - 1);
+            }
+
+            return newArray;
         }
     }
 }

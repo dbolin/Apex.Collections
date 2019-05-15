@@ -69,7 +69,8 @@ namespace Apex.Collections.Immutable
         private void RemoveMutate(TKey key)
         {
             var hash = _equalityComparer.GetHashCode(key);
-            var newRoot = _root.RemoveMutate(_equalityComparer, hash, 0, key, out var removed, out var mutated);
+            var newRoot = _root.RemoveMutate(_equalityComparer,
+                hash, 0, key, out var removed, out var mutated);
             if (!mutated)
             {
                 _root = newRoot;

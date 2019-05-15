@@ -112,20 +112,23 @@ namespace Apex.Collections.Immutable
             public bool TryGet(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out TValue value)
             {
                 uint bitmask = GetBitMask(hash);
-
-                if ((BitMaskBranches & bitmask) != 0)
+                var currentBranch = this;
+                while ((currentBranch.BitMaskBranches & bitmask) != 0)
                 {
-                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    return Branches[branchIndex].TryGet(equalityComparer, hash >> 5, level + BitWidth, key, out value);
+                    var branchIndex = (int)Popcnt.PopCount(currentBranch.BitMaskBranches & (bitmask - 1));
+                    hash >>= 5;
+                    level += BitWidth;
+                    currentBranch = currentBranch.Branches[branchIndex];
+                    bitmask = GetBitMask(hash);
                 }
 
-                if (TryGetValueInternal(bitmask, equalityComparer, key, out value))
+                if (currentBranch.TryGetValueInternal(bitmask, equalityComparer, key, out value))
                 {
                     return true;
                 }
 
                 // hash collision if this is max
-                return GetCollisionOrNone(equalityComparer, key, level, out value);
+                return currentBranch.GetCollisionOrNone(equalityComparer, key, level, out value);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]

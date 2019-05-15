@@ -6,23 +6,30 @@ namespace Apex.Collections.Immutable
     {
         internal sealed partial class Branch
         {
-            private const int BitWidth = 5;
-            private const int SubMask = (1 << BitWidth) - 1;
-            private const int MaxLevel = 32;
+            internal const int BitWidth = 5;
+            internal const int SubMask = (1 << BitWidth) - 1;
+            internal const int MaxLevel = 32;
 
             public static readonly Branch Empty = new Branch(0, 0, Array.Empty<ValueNode>(), Array.Empty<Branch>());
 
-            public uint BitMaskValues { get; }
-            public uint BitMaskBranches { get; }
-            public ValueNode[] Values { get; }
-            public Branch[] Branches { get; }
+            public bool Frozen { get; private set; }
+            public uint BitMaskValues { get; private set; }
+            public uint BitMaskBranches { get; private set; }
+            public ValueNode[] Values { get; private set; }
+            public Branch[] Branches { get; private set; }
 
-            public Branch(uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
+            public Branch(bool frozen, uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
             {
+                Frozen = frozen;
                 BitMaskValues = bitMaskValues;
                 BitMaskBranches = bitMaskBranches;
                 Values = nodes;
                 Branches = branches;
+            }
+
+            public Branch(uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
+                : this(true, bitMaskValues, bitMaskBranches, nodes, branches)
+            {
             }
         }
     }

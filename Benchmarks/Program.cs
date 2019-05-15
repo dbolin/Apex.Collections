@@ -40,29 +40,6 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            /*
-            var x = new LRUCache();
-            x.Capacity = 1000;
-            x.HitRate = 95;
-
-            while (true)
-            {
-                var lru = x.LRUCacheST();
-            }
-            */
-            /*
-            var x = HashMap<int, int>.Empty;
-            for (int i = 0; i < 100; ++i)
-            {
-                x = x.SetItem(i, i);
-            }
-
-            while(true)
-            {
-                foreach (var kvp in x) ;
-            }
-            */
-
             var summaries = BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(config: new Config());
         }
     }

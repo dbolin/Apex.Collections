@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 
@@ -33,7 +34,7 @@ namespace Apex.Collections.Immutable
                     }
 
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value);
+                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, false);
                     added = true;
                     return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                 }
@@ -148,34 +149,6 @@ namespace Apex.Collections.Immutable
 
                 value = default;
                 return false;
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private static Branch CreateFrom(IEqualityComparer<TKey> equalityComparer, ValueNode node, int level, int hash, TKey key, TValue value)
-            {
-                var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key) >> level);
-                var secondBitMask = GetBitMask(hash);
-
-                if (firstBitMask == secondBitMask)
-                {
-                    // hash collision
-                    if (level >= MaxLevel)
-                    {
-                        return new Branch(0, 0, new[] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
-                    }
-
-                    var nextBranch = CreateFrom(equalityComparer, node, level + BitWidth, hash, key, value);
-                    return new Branch(0, firstBitMask, Array.Empty<ValueNode>(), new[] { nextBranch });
-                }
-
-                var resultBitBask = firstBitMask | secondBitMask;
-
-                if (firstBitMask < secondBitMask)
-                {
-                    return new Branch(resultBitBask, 0, new[] { node, new ValueNode(key, value) }, Array.Empty<Branch>());
-                }
-
-                return new Branch(resultBitBask, 0, new[] { new ValueNode(key, value), node }, Array.Empty<Branch>());
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]

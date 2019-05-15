@@ -7,9 +7,9 @@ namespace Apex.Collections.Immutable
     {
         public static readonly HashMap<TKey, TValue> Empty = new HashMap<TKey, TValue>(Branch.Empty, 0);
 
-        private readonly Branch _root;
-        private readonly IEqualityComparer<TKey> _equalityComparer = EqualityComparer<TKey>.Default;
-        public int Count { get; }
+        private Branch _root;
+        private IEqualityComparer<TKey> _equalityComparer = EqualityComparer<TKey>.Default;
+        public int Count { get; internal set; }
 
         internal HashMap(Branch root, int count)
         {
@@ -21,6 +21,33 @@ namespace Apex.Collections.Immutable
         {
             var hash = _equalityComparer.GetHashCode(key);
             return new HashMap<TKey, TValue>(_root.Set(_equalityComparer, hash, 0, key, value, out bool added), added ? Count + 1 : Count);
+        }
+
+        public HashMap<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
+        {
+            var builder = ToBuilder();
+            foreach(var item in items)
+            {
+                builder.SetItem(item.Key, item.Value);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public HashMap<TKey, TValue> RemoveRange(IEnumerable<TKey> keys)
+        {
+            var builder = ToBuilder();
+            foreach (var key in keys)
+            {
+                builder.Remove(key);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public Builder ToBuilder()
+        {
+            return new Builder(this);
         }
 
         public bool TryGetValue(TKey key, out TValue value)

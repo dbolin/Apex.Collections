@@ -132,6 +132,114 @@ namespace Apex.Collections.Tests
             r2.Should().Be(2);
         }
 
+        [Fact]
+        public void SetItemsFromEmpty()
+        {
+            var sut = HashMap<int, int>.Empty;
+            var list = new List<KeyValuePair<int, int>>();
+            for(int i=0;i<10000;++i)
+            {
+                list.Add(new KeyValuePair<int, int>(i, i));
+            }
+
+            sut = sut.SetItems(list);
+            sut.Count.Should().Be(10000);
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut.TryGetValue(i, out var v);
+                v.Should().Be(i);
+            }
+        }
+
+        [Fact]
+        public void SetItemsSharedStructure()
+        {
+            var sut = HashMap<int, int>.Empty;
+            var list = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < 10000; ++i)
+            {
+                if (i < 5000)
+                {
+                    sut = sut.SetItem(i, i);
+                }
+                else
+                {
+                    list.Add(new KeyValuePair<int, int>(i, i));
+                }
+            }
+
+            var sut5000 = sut;
+
+            sut = sut.SetItems(list);
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut.TryGetValue(i, out var v);
+                v.Should().Be(i);
+            }
+
+            sut5000.Count.Should().Be(5000);
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut5000.TryGetValue(i, out var v);
+                if (i < 5000)
+                {
+                    v.Should().Be(i);
+                }
+                else
+                {
+                    v.Should().Be(0);
+                }
+            }
+
+            for (int i = 0; i < 5000; ++i)
+            {
+                sut5000 = sut5000.Remove(i);
+            }
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut.TryGetValue(i, out var v);
+                v.Should().Be(i);
+            }
+        }
+
+        [Fact]
+        public void RemoveRange()
+        {
+            var sut = HashMap<int, int>.Empty;
+            var list = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < 10000; ++i)
+            {
+                if (i > 5000)
+                {
+                    list.Add(new KeyValuePair<int, int>(i, i));
+                }
+                sut = sut.SetItem(i, i);
+            }
+
+            sut.Count.Should().Be(10000);
+
+            sut = sut.RemoveRange(list.Select(x => x.Key));
+
+            sut.Count.Should().Be(5001);
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                sut.TryGetValue(i, out var v);
+                if (i <= 5000)
+                {
+                    v.Should().Be(i);
+                }
+                else
+                {
+                    v.Should().Be(0);
+                }
+            }
+        }
+
+
         private class KeyWithHashCode : IEquatable<KeyWithHashCode>
         {
             public int Key;

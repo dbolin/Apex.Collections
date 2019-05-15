@@ -12,6 +12,14 @@ namespace Apex.Collections.Immutable
 
             public static readonly Branch Empty = new Branch(0, 0, Array.Empty<ValueNode>(), Array.Empty<Branch>());
 
+            public enum OperationResult
+            {
+                NoChange,
+                Added,
+                Replaced,
+                Removed
+            }
+
             public bool Frozen { get; private set; }
             public uint BitMaskValues { get; private set; }
             public uint BitMaskBranches { get; private set; }

@@ -25,17 +25,32 @@ namespace Apex.Collections.Immutable
                 return this;
             }
 
-            var newMap = new HashMap<TKey, TValue>(keyComparer, Branch.Empty, 0).ToBuilder();
-
-            newMap.SetItems(this);
-
-            return newMap.ToImmutable();
+            return new HashMap<TKey, TValue>(keyComparer, Branch.Empty, 0).SetItems(this);
         }
 
         public HashMap<TKey, TValue> SetItem(TKey key, TValue value)
         {
             var hash = _equalityComparer.GetHashCode(key);
-            return new HashMap<TKey, TValue>(_equalityComparer, _root.Set(_equalityComparer, hash, 0, key, value, out bool added), added ? Count + 1 : Count);
+            var newRoot = _root.Set(_equalityComparer, hash, 0, key, value, true, out var result);
+            if(result == Branch.OperationResult.NoChange)
+            {
+                return this;
+            }
+
+            return new HashMap<TKey, TValue>(_equalityComparer, newRoot, result == Branch.OperationResult.Added ? Count + 1 : Count);
+        }
+
+        public HashMap<TKey, TValue> TryAdd(TKey key, TValue value, out bool added)
+        {
+            var hash = _equalityComparer.GetHashCode(key);
+            var newRoot = _root.Set(_equalityComparer, hash, 0, key, value, false, out var result);
+            added = result == Branch.OperationResult.Added;
+            if (result == Branch.OperationResult.NoChange)
+            {
+                return this;
+            }
+
+            return new HashMap<TKey, TValue>(_equalityComparer, newRoot, added ? Count + 1 : Count);
         }
 
         public HashMap<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
@@ -71,10 +86,32 @@ namespace Apex.Collections.Immutable
             return _root.TryGet(_equalityComparer, hash, 0, key, out value);
         }
 
+        public bool ContainsKey(TKey key)
+        {
+            var hash = _equalityComparer.GetHashCode(key);
+            return _root.TryGet(_equalityComparer, hash, 0, key, out _);
+        }
+
         public HashMap<TKey, TValue> Remove(TKey key)
         {
             var hash = _equalityComparer.GetHashCode(key);
-            return new HashMap<TKey, TValue>(_equalityComparer, _root.Remove(_equalityComparer, hash, 0, key, out bool removed), removed ? Count - 1 : Count);
+            var newRoot = _root.Remove(_equalityComparer, hash, 0, key, out var result);
+            if(result == Branch.OperationResult.NoChange)
+            {
+                return this;
+            }
+
+            return new HashMap<TKey, TValue>(_equalityComparer, newRoot, result == Branch.OperationResult.Removed ? Count - 1 : Count);
+        }
+
+        public HashMap<TKey, TValue> Clear()
+        {
+            if(Count == 0)
+            {
+                return this;
+            }
+
+            return new HashMap<TKey, TValue>(_equalityComparer, Branch.Empty, 0);
         }
 
         public Enumerator GetEnumerator() => new Enumerator(_root);

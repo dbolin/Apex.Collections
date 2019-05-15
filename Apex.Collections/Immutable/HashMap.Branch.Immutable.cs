@@ -10,14 +10,19 @@ namespace Apex.Collections.Immutable
         internal sealed partial class Branch
         {
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch Set(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, TValue value, out bool added)
+            public Branch Set(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, TValue value, bool overwrite, out OperationResult result)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
-                    var newBranch = branch.Set(equalityComparer, hash >> 5, level + BitWidth, key, value, out added);
+                    var newBranch = branch.Set(equalityComparer, hash >> 5, level + BitWidth, key, value, overwrite, out result);
+                    if(result == OperationResult.NoChange)
+                    {
+                        return this;
+                    }
+
                     return new Branch(BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
                 }
 
@@ -28,28 +33,39 @@ namespace Apex.Collections.Immutable
 
                     if (equalityComparer.Equals(node.Key, key))
                     {
-                        added = false;
+                        if (!overwrite)
+                        {
+                            result = OperationResult.NoChange;
+                            return this;
+                        }
+
+                        result = OperationResult.Replaced;
                         return new Branch(BitMaskValues, BitMaskBranches, SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
                     }
 
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, false);
-                    added = true;
+                    result = OperationResult.Added;
                     return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                 }
 
-                added = true;
+                result = OperationResult.Added;
                 return new Branch(BitMaskValues | bitmask, BitMaskBranches, Insert(Values, valueIndex, new ValueNode(key, value)), Branches);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public Branch Remove(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out bool removed)
+            public Branch Remove(IEqualityComparer<TKey> equalityComparer, int hash, int level, TKey key, out OperationResult result)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
-                    var newBranch = Branches[branchIndex].Remove(equalityComparer, hash >> 5, level + BitWidth, key, out removed);
+                    var newBranch = Branches[branchIndex].Remove(equalityComparer, hash >> 5, level + BitWidth, key, out result);
+                    if(result == OperationResult.NoChange)
+                    {
+                        return this;
+                    }
+
                     if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
                     {
                         return new Branch(BitMaskValues, BitMaskBranches & (~bitmask), Values, RemoveAt(Branches, branchIndex));
@@ -64,16 +80,16 @@ namespace Apex.Collections.Immutable
                     var node = Values[valueIndex];
                     if (equalityComparer.Equals(node.Key, key))
                     {
-                        removed = true;
+                        result = OperationResult.Removed;
                         return new Branch(BitMaskValues & (~bitmask), BitMaskBranches, RemoveAt(Values, valueIndex), Branches);
                     }
                 }
 
-                return RemoveCollisionOrNone(equalityComparer, level, key, out removed);
+                return RemoveCollisionOrNone(equalityComparer, level, key, out result);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer, int level, TKey key, out bool removed)
+            private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer, int level, TKey key, out OperationResult result)
             {
                 // hash collision
                 if (level >= MaxLevel)
@@ -82,13 +98,13 @@ namespace Apex.Collections.Immutable
                     {
                         if (equalityComparer.Equals(Values[i].Key, key))
                         {
-                            removed = true;
+                            result = OperationResult.Removed;
                             return new Branch(0, 0, RemoveAt(Values, i), Array.Empty<Branch>());
                         }
                     }
                 }
 
-                removed = false;
+                result = OperationResult.NoChange;
                 return this;
             }
 

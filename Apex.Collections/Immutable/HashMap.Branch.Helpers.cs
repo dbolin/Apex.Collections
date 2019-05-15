@@ -91,9 +91,8 @@ namespace Apex.Collections.Immutable
                 return newArray;
             }
 
-            
             int s = 0;
-            for (int d = 0; d != index; ++s, ++d)
+            for (int d = 0; d < newArray.Length; ++s, ++d)
             {
                 if(s == index)
                 {

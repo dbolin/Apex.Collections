@@ -10,7 +10,7 @@ namespace Apex.Collections.Immutable
 
             internal Builder(HashMap<TKey, TValue> hashMap)
             {
-                _hashMap = new HashMap<TKey, TValue>(hashMap._root, hashMap.Count);
+                _hashMap = new HashMap<TKey, TValue>(hashMap._equalityComparer, hashMap._root, hashMap.Count);
             }
 
             public void SetItem(TKey key, TValue value)

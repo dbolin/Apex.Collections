@@ -57,13 +57,20 @@ namespace Apex.Collections.Immutable
             var newArray = new T[array.Length + 1];
             newArray[index] = item;
 
-            if (index != 0)
+            if(array.Length == 0)
             {
-                Array.Copy(array, 0, newArray, 0, index);
+                return newArray;
             }
-            if (index != array.Length)
+
+            int s = 0;
+            for (int d = 0; d != index; ++s, ++d)
             {
-                Array.Copy(array, index, newArray, index + 1, array.Length - index);
+                newArray[d] = array[s];
+            }
+
+            for (int d = index + 1; d < newArray.Length; ++s, ++d)
+            {
+                newArray[d] = array[s];
             }
 
             return newArray;
@@ -84,10 +91,16 @@ namespace Apex.Collections.Immutable
                 return newArray;
             }
 
-            Array.Copy(array, 0, newArray, 0, index);
-            if (index < newArray.Length)
+            
+            int s = 0;
+            for (int d = 0; d != index; ++s, ++d)
             {
-                Array.Copy(array, index + 1, newArray, index, array.Length - index - 1);
+                if(s == index)
+                {
+                    d--;
+                    continue;
+                }
+                newArray[d] = array[s];
             }
 
             return newArray;

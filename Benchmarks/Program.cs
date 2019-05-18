@@ -56,12 +56,12 @@ namespace Benchmarks
 
         static void Test()
         {
-            var x = new DictionariesBuilder { Count = 1000000 };
+            var x = new PriorityQueue { Count = 10000 };
+            x.Init();
 
             while (true)
             {
-                x.Init();
-                x.ApexHashMap();
+                x.PQApexAddHighest();
             }
         }
     }

@@ -13,10 +13,6 @@ steps:
    echo "##vso[task.prependpath]$HOME/.dotnet/tools"
   displayName: 'dotnet preview test'
 
-- script: 'dotnet tool install -g dotnet-reportgenerator-globaltool'
-  displayName: 'Install report generator tool'
-  enabled: false
-
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish code coverage'
   inputs:
@@ -38,5 +34,5 @@ steps:
   displayName: 'dotnet push'
   inputs:
     command: push
-    publishVstsFeed: '07ec90d7-e26d-4498-b734-0d6335b66f3c'
+    publishVstsFeed: 'Main'
 

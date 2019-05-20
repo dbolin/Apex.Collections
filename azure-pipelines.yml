@@ -8,7 +8,7 @@ steps:
   displayName: 'dotnet preview build'
 
 - script: |
-   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura  /p:Include="[Apex.*]*"
+   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*"
    
    echo "##vso[task.prependpath]$HOME/.dotnet/tools"
   displayName: 'dotnet preview test'

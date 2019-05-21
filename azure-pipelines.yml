@@ -8,9 +8,7 @@ steps:
   displayName: 'dotnet preview build'
 
 - script: |
-   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*"
-   
-   echo "##vso[task.prependpath]$HOME/.dotnet/tools"
+   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*" --logger "trx;LogFileName=results.trx"
   displayName: 'dotnet preview test'
 
 - task: PublishCodeCoverageResults@1
@@ -19,7 +17,10 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/coverage.cobertura.xml'
     failIfCoverageEmpty: true
-
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '**/TestResults'
+    Contents: '*.trx'
 - task: DotNetCoreCLI@2
   displayName: 'dotnet pack'
   inputs:

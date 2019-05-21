@@ -6,7 +6,9 @@ variables:
 steps:
 - script: 'dotnet-sdk.dotnet build **/Apex.Collections.csproj -c $(BuildConfiguration)'
   displayName: 'dotnet preview build'
-
+- task: DeleteFiles@1
+  inputs:
+    Contents: '*.trx'
 - script: |
    dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*" --logger "trx;LogFileName=results.trx"
   displayName: 'dotnet preview test'

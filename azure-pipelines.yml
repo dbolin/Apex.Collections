@@ -17,10 +17,6 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/coverage.cobertura.xml'
     failIfCoverageEmpty: true
-- task: DeleteFiles@1
-  inputs:
-    SourceFolder: '**/TestResults'
-    Contents: '*.trx'
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'VSTest'

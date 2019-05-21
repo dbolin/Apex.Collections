@@ -10,7 +10,8 @@ steps:
   inputs:
     Contents: '**/*.trx'
 - script: |
-   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*" --logger "trx;LogFileName=results.trx"
+   dotnet-sdk.dotnet test **/*.Tests.csproj -c Debug /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*" --logger "trx;LogFileName=results.trx"
+   dotnet-sdk.dotnet test **/*.Tests.csproj -c Release --logger "trx;LogFileName=results.trx"
   displayName: 'dotnet preview test'
 
 - task: PublishCodeCoverageResults@1

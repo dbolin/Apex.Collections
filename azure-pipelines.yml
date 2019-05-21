@@ -21,6 +21,13 @@ steps:
   inputs:
     SourceFolder: '**/TestResults'
     Contents: '*.trx'
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/results*.trx'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: 'Unit tests'
 - task: DotNetCoreCLI@2
   displayName: 'dotnet pack'
   inputs:

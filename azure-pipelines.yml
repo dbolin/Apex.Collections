@@ -1,0 +1,43 @@
+pool:
+  name: Default
+variables:
+  BuildConfiguration: 'Release'
+
+steps:
+- script: 'dotnet-sdk.dotnet build **/Apex.Collections.csproj -c $(BuildConfiguration)'
+  displayName: 'dotnet preview build'
+- task: DeleteFiles@1
+  inputs:
+    Contents: '**/*.trx'
+- script: |
+   dotnet-sdk.dotnet test **/*.Tests.csproj -c $(BuildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:UseSourceLink=true /p:Include="[Apex.*]*" --logger "trx;LogFileName=results.trx"
+  displayName: 'dotnet preview test'
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage'
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '**/coverage.cobertura.xml'
+    failIfCoverageEmpty: true
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/results*.trx'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: 'Unit tests'
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack'
+  inputs:
+    command: pack
+    packagesToPack: '**/Apex.Collections.csproj'
+    nobuild: true
+    versioningScheme: byPrereleaseNumber
+    verbosityPack: Minimal
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet push'
+  inputs:
+    command: push
+    publishVstsFeed: 'Main'
+

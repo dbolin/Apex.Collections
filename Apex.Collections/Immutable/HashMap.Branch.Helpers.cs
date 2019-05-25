@@ -32,7 +32,7 @@ namespace Apex.Collections.Immutable
                     return new Branch(0, 0, newNodesInner, Array.Empty<Branch>());
                 }
 
-                var nextBranch = CreateFrom(equalityComparer, node, level + Branch.BitWidth, hash, key, value, mutable);
+                var nextBranch = CreateFrom(equalityComparer, node, level + Branch.BitWidth, hash >> 5, key, value, mutable);
                 return new Branch(!mutable, 0, firstBitMask, Array.Empty<ValueNode>(), new[] { nextBranch });
             }
 

@@ -133,6 +133,32 @@ namespace Apex.Collections.Tests
         }
 
         [Fact]
+        public void SimilarHashes()
+        {
+            var sut = HashMap<KeyWithHashCode, int>.Empty;
+            var key1 = new KeyWithHashCode(1, 0x7FFFFFFF);
+            var key2 = new KeyWithHashCode(2, 0x6FFFFFFF);
+
+            var t = sut.SetItem(key1, 1);
+            t = t.SetItem(key2, 2);
+
+            t.TryGetValue(key1, out var r1);
+            t.TryGetValue(key2, out var r2);
+
+            r1.Should().Be(1);
+            r2.Should().Be(2);
+
+            t = t.Remove(key1);
+            t.Count.Should().Be(1);
+
+            t.TryGetValue(key1, out r1);
+            t.TryGetValue(key2, out r2);
+
+            r1.Should().Be(0);
+            r2.Should().Be(2);
+        }
+
+        [Fact]
         public void SetItemsFromEmpty()
         {
             var sut = HashMap<int, int>.Empty;
@@ -237,6 +263,35 @@ namespace Apex.Collections.Tests
                     v.Should().Be(0);
                 }
             }
+        }
+
+        [Fact]
+        public void Strings()
+        {
+            var sut = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinalIgnoreCase);
+
+            for(int i=0;i<10000;++i)
+            {
+                var k = $"t{i}";
+                sut = sut.SetItem(k, i);
+                sut.TryGetValue(k.ToUpperInvariant(), out var v);
+                v.Should().Be(i);
+                sut = sut.Remove(k);
+                sut.Count.Should().Be(0);
+            }
+
+            sut = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinal);
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                var k = $"t{i}";
+                sut = sut.SetItem(k, i);
+                sut.TryGetValue(k, out var v);
+                v.Should().Be(i);
+                sut = sut.Remove(k);
+                sut.Count.Should().Be(0);
+            }
+
         }
 
 

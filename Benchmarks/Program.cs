@@ -1,4 +1,5 @@
-﻿using Apex.Collections.Immutable;
+﻿using Apex.Collections;
+using Apex.Collections.Immutable;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
@@ -7,6 +8,7 @@ using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Validators;
 using Sasa.Collections;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -51,6 +53,7 @@ namespace Benchmarks
             */
             //Test();
 
+
             var summaries = BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(config: new Config());
         }
 
@@ -62,6 +65,50 @@ namespace Benchmarks
             while (true)
             {
                 x.PQApexAddHighest();
+            }
+        }
+
+        static void Test2()
+        {
+            var r = new Random();
+            var i = 1;
+            var t = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinalIgnoreCase);
+            var t2 = new Dictionary<string, int>();
+
+            while (true)
+            {
+                var s = $"t{i}";
+
+                if (r.Next(0, 100) < 50)
+                {
+                    t = t.SetItem(s, i);
+                    if (!t2.ContainsKey(s))
+                    {
+                        t2.Add(s, i);
+                    }
+
+                    i++;
+                }
+                else
+                {
+                    t = t.Remove(s);
+                    t2.Remove(s);
+                }
+
+                if (t.Count != t2.Count)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                foreach (var kvp in t2)
+                {
+                    t.TryGetValue(kvp.Key, out var res);
+
+                    if (res != kvp.Value)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
             }
         }
     }

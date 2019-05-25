@@ -270,7 +270,7 @@ namespace Apex.Collections.Tests
         {
             var sut = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinalIgnoreCase);
 
-            for(int i=0;i<10000;++i)
+            for(int i=0;i<1000;++i)
             {
                 var k = $"t{i}";
                 sut = sut.SetItem(k, i);
@@ -280,9 +280,21 @@ namespace Apex.Collections.Tests
                 sut.Count.Should().Be(0);
             }
 
+            sut = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinalIgnoreCase);
+
+            for (int i = 0; i < 1000; ++i)
+            {
+                var k = $"tķ{i}";
+                sut = sut.SetItem(k, i);
+                sut.TryGetValue(k.ToUpperInvariant(), out var v);
+                v.Should().Be(i);
+                sut = sut.Remove(k);
+                sut.Count.Should().Be(0);
+            }
+
             sut = HashMap<string, int>.Empty.WithComparer(Apex.Collections.StringComparer.NonRandomOrdinal);
 
-            for (int i = 0; i < 10000; ++i)
+            for (int i = 0; i < 1000; ++i)
             {
                 var k = $"t{i}";
                 sut = sut.SetItem(k, i);

@@ -22,11 +22,11 @@ namespace Benchmarks
         private MemoryStream _sasaStream;
         private MemoryStream _hashMapStream;
 
-        private Binary _serializer;
+        private IBinary _serializer;
 
         public DictionariesSerialization()
         {
-            _serializer = new Binary(new Settings { SerializationMode = Mode.Graph });
+            _serializer = Binary.Create(new Settings { SerializationMode = Mode.Graph });
             _dict = new Dictionary<int, int>();
             _immDict = ImmutableDictionary<int, int>.Empty;
             _immSortedDict = ImmutableSortedDictionary<int, int>.Empty;

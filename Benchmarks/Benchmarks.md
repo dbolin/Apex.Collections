@@ -77,13 +77,13 @@ Allocated bytes for deserialization is the exact size of the structure in memory
 
 |                Method |        Mean |      Error |     StdDev |   Gen 0 |   Gen 1 |   Gen 2 | Allocated |
 |---------------------- |------------:|-----------:|-----------:|--------:|--------:|--------:|----------:|
-|   SerializeDictionary |    93.20 us |  0.2920 us |  0.2438 us |       - |       - |       - |         - |
-|           SerializeID |   901.75 us |  3.0208 us |  2.8256 us |       - |       - |       - |         - |
-|          SerializeISD |   592.11 us |  9.7857 us |  9.1536 us |       - |       - |       - |         - |
-|     SerializeSasaTrie |    75.10 us |  0.1864 us |  0.1744 us |       - |       - |       - |         - |
-|      SerializeHashMap |   117.69 us |  0.5524 us |  0.5167 us |       - |       - |       - |         - |
-| DeserializeDictionary |   224.44 us |  4.3802 us |  4.0972 us | 19.7754 | 16.8457 | 16.8457 |  202313 B |
-|         DeserializeID | 1,373.50 us | 26.0142 us | 23.0609 us | 29.2969 | 11.7188 |       - |  560200 B |
-|        DeserializeISD |   979.70 us | 14.5221 us | 12.8735 us | 46.8750 | 19.5313 |       - |  480144 B |
-|   DeserializeSasaTrie |    81.99 us |  0.9605 us |  0.8021 us | 12.5732 |  2.1973 |       - |  130752 B |
-|    DeserializeHashMap |   162.98 us |  4.4274 us |  4.9211 us | 15.6250 |  3.9063 |       - |  164664 B |
+|   SerializeDictionary |    17.69 us |  0.0870 us |  0.0813 us |       - |       - |       - |         - |
+|           SerializeID |   772.79 us |  5.8438 us |  5.4663 us |       - |       - |       - |         - |
+|          SerializeISD |   466.99 us |  2.6963 us |  2.5221 us |       - |       - |       - |         - |
+|     SerializeSasaTrie |    46.69 us |  0.1573 us |  0.1471 us |       - |       - |       - |         - |
+|      SerializeHashMap |    76.38 us |  0.5673 us |  0.5307 us |       - |       - |       - |         - |
+| DeserializeDictionary |   195.38 us |  3.7725 us |  3.8741 us | 25.8789 | 19.7754 | 19.7754 |  350652 B |
+|         DeserializeID | 1,114.06 us | 13.3605 us | 12.4974 us | 33.2031 | 13.6719 |       - |  560200 B |
+|        DeserializeISD |   880.70 us | 17.5393 us | 17.2259 us | 45.8984 | 21.4844 |       - |  480144 B |
+|   DeserializeSasaTrie |    52.43 us |  1.9945 us |  2.3743 us | 12.5732 |  1.8921 |       - |  130752 B |
+|    DeserializeHashMap |   117.58 us |  0.4602 us |  0.4079 us | 15.7471 |  3.7842 |       - |  164640 B |

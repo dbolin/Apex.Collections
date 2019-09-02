@@ -1,5 +1,5 @@
 
-## Benchmarked Collections
+# Benchmarked Collections
 
 |                    Name |                      Source|
 | ----------------------- | -------------------------- |
@@ -18,8 +18,6 @@ Intel Core i5-4690 CPU 3.50GHz (Haswell), 1 CPU, 4 logical and 4 physical cores
 Job=Core  Runtime=Core  Server=True
 Toolchain=.NET Core 3.0
 ```
-
-# Immutable.HashMap<K, V>
 
 ## Add
 

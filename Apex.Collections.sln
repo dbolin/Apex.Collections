@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apex.Collections", "Apex.Collections\Apex.Collections.csproj", "{84ADD169-830D-48AE-A920-E1E00DDBC5AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Apex.Collections.Tests", "Apex.Collections.Tests\Apex.Collections.Tests.csproj", "{FDCD1931-2D7D-4A77-B9E9-B9EAC9CEA8DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apex.Collections.Tests", "Apex.Collections.Tests\Apex.Collections.Tests.csproj", "{FDCD1931-2D7D-4A77-B9E9-B9EAC9CEA8DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{B8C596BD-4C05-48B0-8CF8-4F1BF6536F1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{B8C596BD-4C05-48B0-8CF8-4F1BF6536F1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

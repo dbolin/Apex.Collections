@@ -1,14 +1,17 @@
 ﻿using Apex.Collections;
 using Apex.Collections.Immutable;
+using Apex.Runtime;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Validators;
+using ImmutableTrie;
 using Sasa.Collections;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -53,8 +56,48 @@ namespace Benchmarks
             */
             //Test();
 
+            //TestSizes();
 
             var summaries = BenchmarkSwitcher.FromAssembly(Assembly.GetExecutingAssembly()).Run(config: new Config());
+        }
+
+        private static void TestSizes()
+        {
+            var count = 10000;
+            var rn = new Random(4);
+            var a = new List<int>();
+            for (int i = 0; i < count; ++i)
+            {
+                a.Add(i);
+            }
+
+            int n = count;
+            while (n > 1)
+            {
+                n--;
+                int k = rn.Next(n + 1);
+                var value = a[k];
+                a[k] = a[n];
+                a[n] = value;
+            }
+
+            var x = new List<object>();
+            //var d = ImmutableTrieDictionary.Create<int, int>();
+            //var d = ImmutableDictionary<int, int>.Empty;
+            var d = HashMap<int, int>.Empty;
+            for (int i = 0; i < 10000; ++i)
+            {
+                d = d.SetItem(a[i], a[i]);
+                if (i % 100 == 0)
+                {
+                    x.Add(d);
+
+                }
+            }
+
+            var r = new Memory(Memory.Mode.Detailed);
+            var s = r.DetailedSizeOf(x);
+            Console.WriteLine(s.TotalSize);
         }
 
         static void Test()

@@ -7,14 +7,14 @@ using System.Collections.Immutable;
 
 namespace Benchmarks
 {
-    public class DictionariesModify
+    public class DictionariesModifyAdd
     {
         private List<int> _access;
 
         [GlobalSetup]
         public void Init()
         {
-            var r = new Random();
+            var r = new Random(4);
             _access = new List<int>();
 
             for (int i = 0; i < Count; ++i)
@@ -33,48 +33,16 @@ namespace Benchmarks
             }
         }
 
-        [Params(100, 10000, 1000000)]
+        [Params(5, 100, 10000)]
         public int Count { get; set; }
 
         [Benchmark(Baseline = true)]
-        public void SystemDictionary()
-        {
-            var t = new Dictionary<int, int>();
-            for (int i = 0; i < Count; ++i)
-            {
-                t.Add(i, i);
-            }
-            for (int i = 0; i < Count; ++i)
-            {
-                t.Remove(_access[i]);
-            }
-        }
-
-        [Benchmark]
-        public void SystemImmutableDictionary()
+        public void ImmutableDictionary()
         {
             var t = ImmutableDictionary<int, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
                 t = t.SetItem(i, i);
-            }
-            for (int i = 0; i < Count; ++i)
-            {
-                t = t.Remove(_access[i]);
-            }
-        }
-
-        [Benchmark]
-        public void SystemSortedImmutableDictionary()
-        {
-            var t = ImmutableSortedDictionary<int, int>.Empty;
-            for (int i = 0; i < Count; ++i)
-            {
-                t = t.SetItem(i, i);
-            }
-            for (int i = 0; i < Count; ++i)
-            {
-                t = t.Remove(_access[i]);
             }
         }
 
@@ -86,9 +54,15 @@ namespace Benchmarks
             {
                 t = t.Add(i, i);
             }
+        }
+
+        [Benchmark]
+        public void ImmutableTrieDictionary()
+        {
+            var t = ImmutableTrie.ImmutableTrieDictionary.Create<int, int>();
             for (int i = 0; i < Count; ++i)
             {
-                t = t.Remove(_access[i]);
+                t = t.Add(i, i);
             }
         }
 
@@ -99,10 +73,6 @@ namespace Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 t = t.SetItem(i, i);
-            }
-            for (int i = 0; i < Count; ++i)
-            {
-                t = t.Remove(_access[i]);
             }
         }
     }

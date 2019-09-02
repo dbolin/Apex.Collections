@@ -7,17 +7,17 @@ using System.Linq;
 
 namespace Benchmarks
 {
-    public class DictionariesBuilder
+    public class DictionariesBuilderAdd
     {
-        [Params(100, 10000, 1000000)]
+        [Params(5, 100, 10000)]
         public int Count { get; set; }
 
         private List<KeyValuePair<int,int>> _list;
 
         [GlobalSetup]
-        public void Init()
+        public void Init2()
         {
-            var r = new Random();
+            var r = new Random(4);
             _list = new List<KeyValuePair<int, int>>();
 
             for (int i = 0; i < Count; ++i)
@@ -37,37 +37,26 @@ namespace Benchmarks
         }
 
         [Benchmark(Baseline = true)]
-        public void Dictionary()
-        {
-            var t = new Dictionary<int, int>(_list);
-            foreach(var kvp in _list)
-            {
-                t.Remove(kvp.Key);
-            }
-        }
-
-        [Benchmark]
-        public void ImmutableDictionary()
+        public object ImmutableDictionary()
         {
             var t = ImmutableDictionary<int, int>.Empty;
             t = t.SetItems(_list);
-            t = t.RemoveRange(_list.Select(x => x.Key));
+            return t;
         }
 
         [Benchmark]
-        public void ImmutableSortedDictionary()
+        public object ImmutableTrieDictionary()
         {
-            var t = ImmutableSortedDictionary<int, int>.Empty;
-            t = t.SetItems(_list);
-            t = t.RemoveRange(_list.Select(x => x.Key));
+            var t = ImmutableTrie.ImmutableTrieDictionary.CreateRange(_list);
+            return t;
         }
 
         [Benchmark]
-        public void ApexHashMap()
+        public object ApexHashMap()
         {
             var t = HashMap<int, int>.Empty;
             t = t.SetItems(_list);
-            t = t.RemoveRange(_list.Select(x => x.Key));
+            return t;
         }
     }
 }

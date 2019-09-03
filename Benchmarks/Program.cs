@@ -102,12 +102,13 @@ namespace Benchmarks
 
         static void Test()
         {
-            var x = new PriorityQueue { Count = 10000 };
+            var x = new DictionariesLookup<string>();
+            x.Count = 5;
             x.Init();
 
             while (true)
             {
-                x.PQApexAddHighest();
+                x.SasaTrie();
             }
         }
 

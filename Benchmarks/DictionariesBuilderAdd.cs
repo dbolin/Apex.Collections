@@ -3,26 +3,27 @@ using BenchmarkDotNet.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Benchmarks
 {
-    public class DictionariesBuilderAdd
+    [GenericTypeArguments(typeof(int))]
+    [GenericTypeArguments(typeof(string))]
+    public class DictionariesBuilderAdd<T>
     {
         [Params(5, 100, 10000)]
         public int Count { get; set; }
 
-        private List<KeyValuePair<int,int>> _list;
+        private List<KeyValuePair<T,int>> _list;
 
         [GlobalSetup]
         public void Init2()
         {
             var r = new Random(4);
-            _list = new List<KeyValuePair<int, int>>();
+            _list = new List<KeyValuePair<T, int>>();
 
             for (int i = 0; i < Count; ++i)
             {
-                _list.Add(new KeyValuePair<int, int>(i, i));
+                _list.Add(new KeyValuePair<T, int>(DictionariesBase<T>.GenerateValue(r), i));
             }
 
             int n = _list.Count;
@@ -39,7 +40,7 @@ namespace Benchmarks
         [Benchmark(Baseline = true)]
         public object ImmutableDictionary()
         {
-            var t = ImmutableDictionary<int, int>.Empty;
+            var t = ImmutableDictionary<T, int>.Empty;
             t = t.SetItems(_list);
             return t;
         }
@@ -54,7 +55,7 @@ namespace Benchmarks
         [Benchmark]
         public object ApexHashMap()
         {
-            var t = HashMap<int, int>.Empty;
+            var t = HashMap<T, int>.Empty;
             t = t.SetItems(_list);
             return t;
         }

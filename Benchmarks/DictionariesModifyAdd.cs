@@ -4,32 +4,35 @@ using Sasa.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using TunnelVisionLabs.Collections.Trees.Immutable;
 
 namespace Benchmarks
 {
-    public class DictionariesModifyAdd
+    [GenericTypeArguments(typeof(int))]
+    [GenericTypeArguments(typeof(string))]
+    public class DictionariesModifyAdd<T>
     {
-        private List<int> _access;
+        private List<T> _keys;
 
         [GlobalSetup]
         public void Init()
         {
             var r = new Random(4);
-            _access = new List<int>();
+            _keys = new List<T>();
 
             for (int i = 0; i < Count; ++i)
             {
-                _access.Add(i);
+                _keys.Add(DictionariesBase<T>.GenerateValue(r));
             }
 
-            int n = _access.Count;
+            int n = _keys.Count;
             while (n > 1)
             {
                 n--;
                 int k = r.Next(n + 1);
-                var value = _access[k];
-                _access[k] = _access[n];
-                _access[n] = value;
+                var value = _keys[k];
+                _keys[k] = _keys[n];
+                _keys[n] = value;
             }
         }
 
@@ -39,40 +42,50 @@ namespace Benchmarks
         [Benchmark(Baseline = true)]
         public void ImmutableDictionary()
         {
-            var t = ImmutableDictionary<int, int>.Empty;
+            var t = ImmutableDictionary<T, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
-                t = t.SetItem(i, i);
+                t = t.SetItem(_keys[i], i);
             }
         }
 
         [Benchmark]
         public void SasaTrie()
         {
-            var t = Trie<int, int>.Empty;
+            var t = Trie<T, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
-                t = t.Add(i, i);
+                t = t.Add(_keys[i], i);
             }
         }
 
         [Benchmark]
         public void ImmutableTrieDictionary()
         {
-            var t = ImmutableTrie.ImmutableTrieDictionary.Create<int, int>();
+            var t = ImmutableTrie.ImmutableTrieDictionary.Create<T, int>();
             for (int i = 0; i < Count; ++i)
             {
-                t = t.Add(i, i);
+                t = t.Add(_keys[i], i);
+            }
+        }
+
+        [Benchmark]
+        public void ImmutableTreeDictionary()
+        {
+            var t = ImmutableTreeDictionary<T, int>.Empty;
+            for (int i = 0; i < Count; ++i)
+            {
+                t = t.Add(_keys[i], i);
             }
         }
 
         [Benchmark]
         public void ApexHashMap()
         {
-            var t = HashMap<int, int>.Empty;
+            var t = HashMap<T, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
-                t = t.SetItem(i, i);
+                t = t.SetItem(_keys[i], i);
             }
         }
     }

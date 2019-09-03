@@ -5,16 +5,30 @@ using Sasa.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using TunnelVisionLabs.Collections.Trees.Immutable;
 
 namespace Benchmarks
 {
-    public class DictionariesBase
+    [GenericTypeArguments(typeof(int))]
+    [GenericTypeArguments(typeof(string))]
+    public abstract class DictionariesBase<T>
     {
-        protected ImmutableDictionary<int, int> _immDict;
-        protected Trie<int, int> _sasaTrie;
-        protected ImmutableTrieDictionary<int, int> _sGuh;
-        protected HashMap<int, int> _apexHashMap;
-        protected List<int> _access;
+        protected ImmutableDictionary<T, int> _immDict;
+        protected Trie<T, int> _sasaTrie;
+        protected ImmutableTrieDictionary<T, int> _sGuh;
+        protected ImmutableTreeDictionary<T, int> _tvl;
+        protected HashMap<T, int> _apexHashMap;
+        protected List<T> _keys;
+
+        public static T GenerateValue(Random r)
+        {
+            if (typeof(T) == typeof(int))
+                return (T)(object)r.Next();
+            if (typeof(T) == typeof(string))
+                return (T)(object)r.Next().ToString("D8");
+
+            throw new NotImplementedException($"{typeof(T).Name} is not implemented");
+        }
 
         [Params(5, 100, 10000)]
         public int Count { get; set; }
@@ -23,28 +37,31 @@ namespace Benchmarks
         public void Init()
         {
             var r = new Random(4);
-            _access = new List<int>();
-            _immDict = ImmutableDictionary<int, int>.Empty;
-            _sasaTrie = Trie<int, int>.Empty;
-            _sGuh = ImmutableTrieDictionary.Create<int, int>();
-            _apexHashMap = HashMap<int, int>.Empty;
+            _keys = new List<T>();
+            _immDict = ImmutableDictionary<T, int>.Empty;
+            _sasaTrie = Trie<T, int>.Empty;
+            _sGuh = ImmutableTrieDictionary.Create<T, int>();
+            _tvl = ImmutableTreeDictionary<T, int>.Empty;
+            _apexHashMap = HashMap<T, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
-                _immDict = _immDict.SetItem(i, i);
-                _sasaTrie = _sasaTrie.Add(i, i);
-                _sGuh = _sGuh.Add(i, i);
-                _apexHashMap = _apexHashMap.SetItem(i, i);
-                _access.Add(i);
+                var k = GenerateValue(r);
+                _immDict = _immDict.SetItem(k, i);
+                _sasaTrie = _sasaTrie.Add(k, i);
+                _sGuh = _sGuh.Add(k, i);
+                _tvl = _tvl.Add(k, i);
+                _apexHashMap = _apexHashMap.SetItem(k, i);
+                _keys.Add(k);
             }
 
-            int n = _access.Count;
+            int n = _keys.Count;
             while (n > 1)
             {
                 n--;
                 int k = r.Next(n + 1);
-                var value = _access[k];
-                _access[k] = _access[n];
-                _access[n] = value;
+                var value = _keys[k];
+                _keys[k] = _keys[n];
+                _keys[n] = value;
             }
         }
     }

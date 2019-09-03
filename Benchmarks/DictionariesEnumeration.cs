@@ -2,7 +2,7 @@
 
 namespace Benchmarks
 {
-    public class DictionariesEnumeration : DictionariesBase
+    public class DictionariesEnumeration<T> : DictionariesBase<T>
     {
         [Benchmark(Baseline = true)]
         public void ImmutableDictionary()
@@ -22,6 +22,13 @@ namespace Benchmarks
         public void ImmutableTrieDictionary()
         {
             foreach (var kvp in _sGuh)
+                ;
+        }
+
+        [Benchmark]
+        public void ImmutableTreeDictionary()
+        {
+            foreach (var kvp in _tvl)
                 ;
         }
 

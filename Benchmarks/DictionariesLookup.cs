@@ -5,7 +5,7 @@ namespace Benchmarks
 {
     public class DictionariesLookup<T> : DictionariesBase<T>
     {
-        //[Benchmark(Baseline = true)]
+        [Benchmark(Baseline = true)]
         public void ImmutableDictionary()
         {
             for (int t = 0; t < Count; ++t)
@@ -14,7 +14,7 @@ namespace Benchmarks
             }
         }
 
-        //[Benchmark]
+        [Benchmark]
         public void SasaTrie()
         {
             for (int t = 0; t < Count; ++t)
@@ -23,7 +23,7 @@ namespace Benchmarks
             }
         }
 
-        //[Benchmark]
+        [Benchmark]
         public void ImmutableTrieDictionary()
         {
             for (int t = 0; t < Count; ++t)
@@ -32,7 +32,7 @@ namespace Benchmarks
             }
         }
 
-        //[Benchmark]
+        [Benchmark]
         public void ImmutableTreeDictionary()
         {
             for (int t = 0; t < Count; ++t)

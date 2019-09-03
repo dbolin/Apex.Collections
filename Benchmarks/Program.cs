@@ -3,6 +3,7 @@ using Apex.Collections.Immutable;
 using Apex.Runtime;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
@@ -28,7 +29,7 @@ namespace Benchmarks
             Add(DefaultConfig.Instance.GetExporters().ToArray()); // manual config has no exporters by default
             Add(DefaultConfig.Instance.GetColumnProviders().ToArray()); // manual config has no columns by default
 
-            Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp30).WithGcServer(true));
+            Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp30).WithGcServer(true).WithIterationTime(new TimeInterval(250, TimeUnit.Millisecond)).WithMaxIterationCount(30));
             //Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp22).WithGcServer(true));
             //Add(Job.Clr.With(CsProjClassicNetToolchain.Net472));
             //Add(Job.CoreRT);

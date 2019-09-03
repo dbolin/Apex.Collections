@@ -122,6 +122,13 @@ namespace Apex.Collections.Tests
             r1.Should().Be(1);
             r2.Should().Be(2);
 
+            var count = 0;
+            foreach(var x in t)
+            {
+                count++;
+            }
+            count.Should().Be(2);
+
             t = t.Remove(key1);
             t.Count.Should().Be(1);
 

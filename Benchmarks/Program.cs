@@ -16,7 +16,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using TunnelVisionLabs.Collections.Trees.Immutable;
 
 namespace Benchmarks
 {
@@ -55,6 +57,7 @@ namespace Benchmarks
 
             Test();
             */
+
             //Test();
 
             //TestSizes();
@@ -85,14 +88,14 @@ namespace Benchmarks
             var x = new List<object>();
             //var d = ImmutableTrieDictionary.Create<int, int>();
             //var d = ImmutableDictionary<int, int>.Empty;
-            var d = HashMap<int, int>.Empty;
+            //var d = HashMap<int, int>.Empty;
+            var d = ImmutableTreeDictionary<int, int>.Empty;
             for (int i = 0; i < 10000; ++i)
             {
                 d = d.SetItem(a[i], a[i]);
-                if (i % 100 == 0)
+                //if (i % 1000 == 0)
                 {
                     x.Add(d);
-
                 }
             }
 
@@ -103,13 +106,13 @@ namespace Benchmarks
 
         static void Test()
         {
-            var x = new DictionariesLookup<string>();
-            x.Count = 5;
+            var x = new DictionariesEnumeration<int>();
+            x.Count = 10000;
             x.Init();
 
             while (true)
             {
-                x.SasaTrie();
+                x.ApexHashMap();
             }
         }
 

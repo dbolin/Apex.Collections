@@ -15,7 +15,7 @@ namespace Apex.Collections.Immutable
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
-                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
                     var newBranch = branch.Set(equalityComparer, hash >> 5, level + BitWidth, key, value, overwrite, out result);
                     if(result == OperationResult.NoChange)
@@ -26,7 +26,7 @@ namespace Apex.Collections.Immutable
                     return new Branch(BitMaskValues, BitMaskBranches, Values, SetItem(Branches, branchIndex, newBranch));
                 }
 
-                var valueIndex = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                var valueIndex = PopCount(BitMaskValues & (bitmask - 1));
                 if ((BitMaskValues & bitmask) != 0)
                 {
                     var node = Values[valueIndex];
@@ -43,7 +43,7 @@ namespace Apex.Collections.Immutable
                         return new Branch(BitMaskValues, BitMaskBranches, SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
                     }
 
-                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, false);
                     result = OperationResult.Added;
                     return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
@@ -59,7 +59,7 @@ namespace Apex.Collections.Immutable
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
-                    var branchIndex = (int)Popcnt.PopCount(BitMaskBranches & (bitmask - 1));
+                    var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
                     var newBranch = Branches[branchIndex].Remove(equalityComparer, hash >> 5, level + BitWidth, key, out result);
                     if(result == OperationResult.NoChange)
                     {
@@ -76,7 +76,7 @@ namespace Apex.Collections.Immutable
 
                 if ((BitMaskValues & bitmask) != 0)
                 {
-                    var valueIndex = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                    var valueIndex = PopCount(BitMaskValues & (bitmask - 1));
                     var node = Values[valueIndex];
                     if (equalityComparer.Equals(node.Key, key))
                     {
@@ -115,7 +115,7 @@ namespace Apex.Collections.Immutable
                 var currentBranch = this;
                 while ((currentBranch.BitMaskBranches & bitmask) != 0)
                 {
-                    var branchIndex = (int)Popcnt.PopCount(currentBranch.BitMaskBranches & (bitmask - 1));
+                    var branchIndex = PopCount(currentBranch.BitMaskBranches & (bitmask - 1));
                     hash >>= 5;
                     level += BitWidth;
                     currentBranch = currentBranch.Branches[branchIndex];
@@ -136,7 +136,7 @@ namespace Apex.Collections.Immutable
             {
                 if ((BitMaskValues & bitmask) != 0)
                 {
-                    var index = (int)Popcnt.PopCount(BitMaskValues & (bitmask - 1));
+                    var index = PopCount(BitMaskValues & (bitmask - 1));
                     var node = Values[index];
 
                     if (equalityComparer.Equals(node.Key, key))

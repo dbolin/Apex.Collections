@@ -1,11 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace Apex.Collections.Immutable
 {
     public sealed partial class HashMap<TKey, TValue>
     {
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+        private static unsafe int PopCount(uint x)
+        {
+            if(Popcnt.IsSupported)
+            {
+                return (int)Popcnt.PopCount(x);
+            }
+
+            return PrecomputedPopcnt.Bits.wordBits[x & 0xFFFF] + PrecomputedPopcnt.Bits.wordBits[x >> 16];
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static uint GetBitMask(int hash)
         {

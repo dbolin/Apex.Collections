@@ -21,6 +21,14 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        public object ImmutableTreeDictionary()
+        {
+            var t = _tvl;
+            t = t.RemoveRange(_keys);
+            return t;
+        }
+
+        [Benchmark]
         public object ApexHashMap()
         {
             var t = _apexHashMap;

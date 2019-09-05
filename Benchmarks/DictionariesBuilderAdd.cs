@@ -2,7 +2,6 @@
 using BenchmarkDotNet.Attributes;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Benchmarks
 {
@@ -40,8 +39,7 @@ namespace Benchmarks
         [Benchmark(Baseline = true)]
         public object ImmutableDictionary()
         {
-            var t = ImmutableDictionary<T, int>.Empty;
-            t = t.SetItems(_list);
+            var t = System.Collections.Immutable.ImmutableDictionary.CreateRange(_list);
             return t;
         }
 
@@ -49,6 +47,13 @@ namespace Benchmarks
         public object ImmutableTrieDictionary()
         {
             var t = ImmutableTrie.ImmutableTrieDictionary.CreateRange(_list);
+            return t;
+        }
+
+        [Benchmark]
+        public object ImmutableTreeDictionary()
+        {
+            var t = TunnelVisionLabs.Collections.Trees.Immutable.ImmutableTreeDictionary.CreateRange(_list);
             return t;
         }
 

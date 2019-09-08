@@ -10,13 +10,11 @@ namespace Apex.Collections.Immutable
         {
             public Branch Branch;
             public int Index;
-            public bool OnValues;
 
-            public EnumeratorState(Branch branch, bool onValues, int index)
+            public EnumeratorState(Branch branch, int index)
             {
                 Branch = branch;
                 Index = index;
-                OnValues = onValues;
             }
         }
 
@@ -24,6 +22,7 @@ namespace Apex.Collections.Immutable
         {
             private EnumeratorState _currentState;
             private int _currentSlot;
+            private bool _onValues;
             private EnumeratorState _slot0;
             private EnumeratorState _slot1;
             private EnumeratorState _slot2;
@@ -43,7 +42,8 @@ namespace Apex.Collections.Immutable
                 _slot4 = default;
                 _slot5 = default;
                 _slot6 = default;
-                _currentState = new EnumeratorState(start, true, -1);
+                _currentState = new EnumeratorState(start, -1);
+                _onValues = true;
                 _currentSlot = 0;
             }
 
@@ -94,12 +94,12 @@ namespace Apex.Collections.Immutable
             public bool MoveNext()
             {
                 var index = _currentState.Index + 1;
-                if (_currentState.OnValues)
+                if (_onValues)
                 {
                     if (index >= _currentState.Branch.Values.Length)
                     {
                         index = 0;
-                        _currentState.OnValues = false;
+                        _onValues = false;
                     }
                     else
                     {
@@ -123,7 +123,8 @@ namespace Apex.Collections.Immutable
                 var branch = _currentState.Branch.Branches[index];
                 ref var nextState = ref CurrentStackState(ref this);
                 nextState = _currentState;
-                _currentState = new EnumeratorState(branch, true, -1);
+                _currentState = new EnumeratorState(branch, -1);
+                _onValues = true;
                 _currentSlot++;
                 return MoveNext();
             }
@@ -131,7 +132,8 @@ namespace Apex.Collections.Immutable
             public void Reset()
             {
                 _currentSlot = 0;
-                _currentState = new EnumeratorState(_start, true, -1);
+                _currentState = new EnumeratorState(_start, -1);
+                _onValues = true;
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace Apex.Collections.Immutable
 {
+    [Immutable(onFaith: true)]
     public sealed partial class HashMap<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         public static readonly HashMap<TKey, TValue> Empty = new HashMap<TKey, TValue>(EqualityComparer<TKey>.Default, Branch.Empty, 0);

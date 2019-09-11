@@ -11,7 +11,7 @@ namespace Apex.Collections.Immutable
         {
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public Branch SetMutate(IEqualityComparer<TKey> equalityComparer,
-                int hash, int level, TKey key, TValue value, out bool added, out bool mutated)
+                int hash, int level, TKey key, TValue value, Builder.State builderState, out bool added, out bool mutated)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
@@ -19,12 +19,12 @@ namespace Apex.Collections.Immutable
                     var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
                     var branch = Branches[branchIndex];
                     var newBranch = branch.SetMutate(equalityComparer,
-                        hash >> 5, level + BitWidth, key, value, out added, out var newBranchMutated);
+                        hash >> 5, level + BitWidth, key, value, builderState, out added, out var newBranchMutated);
 
-                    if(Frozen)
+                    if(builderState.IsFrozen(OwnerToken))
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues, BitMaskBranches, Values,
+                        return new Branch(builderState.OwnerToken, BitMaskValues, BitMaskBranches, Values,
                             SetItem(Branches, branchIndex, newBranch));
                     }
 
@@ -45,10 +45,10 @@ namespace Apex.Collections.Immutable
                     if (equalityComparer.Equals(node.Key, key))
                     {
                         added = false;
-                        if(Frozen)
+                        if(builderState.IsFrozen(OwnerToken))
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues, BitMaskBranches,
+                            return new Branch(builderState.OwnerToken, BitMaskValues, BitMaskBranches,
                                 SetItem(Values, valueIndex, new ValueNode(key, value)), Branches);
                         }
 
@@ -58,13 +58,13 @@ namespace Apex.Collections.Immutable
                     }
 
                     var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
-                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, true);
+                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, builderState.OwnerToken);
                     added = true;
                     
-                    if(Frozen)
+                    if(builderState.IsFrozen(OwnerToken))
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches | bitmask,
+                        return new Branch(builderState.OwnerToken, BitMaskValues & (~bitmask), BitMaskBranches | bitmask,
                             RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                     }
 
@@ -77,10 +77,10 @@ namespace Apex.Collections.Immutable
                 }
 
                 added = true;
-                if(Frozen)
+                if(builderState.IsFrozen(OwnerToken))
                 {
                     mutated = false;
-                    return new Branch(false, BitMaskValues | bitmask, BitMaskBranches,
+                    return new Branch(builderState.OwnerToken, BitMaskValues | bitmask, BitMaskBranches,
                         Insert(Values, valueIndex, new ValueNode(key, value)), Branches);
                 }
 
@@ -92,20 +92,20 @@ namespace Apex.Collections.Immutable
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             public Branch RemoveMutate(IEqualityComparer<TKey> equalityComparer,
-                int hash, int level, TKey key, out bool removed, out bool mutated)
+                int hash, int level, TKey key, Builder.State builderState, out bool removed, out bool mutated)
             {
                 uint bitmask = GetBitMask(hash);
                 if ((BitMaskBranches & bitmask) != 0)
                 {
                     var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
                     var newBranch = Branches[branchIndex].RemoveMutate(equalityComparer,
-                        hash >> 5, level + BitWidth, key, out removed, out var newBranchMutated);
+                        hash >> 5, level + BitWidth, key, builderState, out removed, out var newBranchMutated);
                     if (newBranch.Branches.Length == 0 && newBranch.Values.Length == 0)
                     {
-                        if(Frozen)
+                        if(builderState.IsFrozen(OwnerToken))
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues, BitMaskBranches & (~bitmask), Values,
+                            return new Branch(builderState.OwnerToken, BitMaskValues, BitMaskBranches & (~bitmask), Values,
                                 RemoveAt(Branches, branchIndex));
                         }
 
@@ -121,10 +121,10 @@ namespace Apex.Collections.Immutable
                         return this;
                     }
 
-                    if (Frozen)
+                    if (builderState.IsFrozen(OwnerToken))
                     {
                         mutated = false;
-                        return new Branch(false, BitMaskValues, BitMaskBranches, Values,
+                        return new Branch(builderState.OwnerToken, BitMaskValues, BitMaskBranches, Values,
                             SetItem(Branches, branchIndex, newBranch));
                     }
 
@@ -144,10 +144,10 @@ namespace Apex.Collections.Immutable
                     {
                         removed = true;
 
-                        if (Frozen)
+                        if (builderState.IsFrozen(OwnerToken))
                         {
                             mutated = false;
-                            return new Branch(false, BitMaskValues & (~bitmask), BitMaskBranches,
+                            return new Branch(builderState.OwnerToken, BitMaskValues & (~bitmask), BitMaskBranches,
                                 RemoveAt(Values, valueIndex), Branches);
                         }
 
@@ -158,12 +158,12 @@ namespace Apex.Collections.Immutable
                     }
                 }
 
-                return RemoveCollisionOrNone(equalityComparer, level, key, out removed, out mutated);
+                return RemoveCollisionOrNone(equalityComparer, level, key, builderState, out removed, out mutated);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveOptimization)]
             private Branch RemoveCollisionOrNone(IEqualityComparer<TKey> equalityComparer,
-                int level, TKey key, out bool removed, out bool mutated)
+                int level, TKey key, Builder.State builderState, out bool removed, out bool mutated)
             {
                 // hash collision
                 if (level >= MaxLevel)
@@ -174,10 +174,10 @@ namespace Apex.Collections.Immutable
                         {
                             removed = true;
 
-                            if(Frozen)
+                            if(builderState.IsFrozen(OwnerToken))
                             {
                                 mutated = false;
-                                return new Branch(false, 0, 0, RemoveAt(Values, i), Array.Empty<Branch>());
+                                return new Branch(builderState.OwnerToken, 0, 0, RemoveAt(Values, i), Array.Empty<Branch>());
                             }
 
                             mutated = true;
@@ -190,20 +190,6 @@ namespace Apex.Collections.Immutable
                 removed = false;
                 mutated = false;
                 return this;
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            public void Freeze()
-            {
-                for (int i = Branches.Length - 1; i >= 0; --i)
-                {
-                    if (!Branches[i].Frozen)
-                    {
-                        Branches[i].Freeze();
-                    }
-                }
-
-                Frozen = true;
             }
         }
     }

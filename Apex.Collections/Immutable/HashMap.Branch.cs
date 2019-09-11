@@ -20,15 +20,15 @@ namespace Apex.Collections.Immutable
                 Removed
             }
 
-            public bool Frozen { get; private set; }
+            public BuilderToken OwnerToken { get; private set; }
             public uint BitMaskValues { get; private set; }
             public uint BitMaskBranches { get; private set; }
             public ValueNode[] Values { get; private set; }
             public Branch[] Branches { get; private set; }
 
-            public Branch(bool frozen, uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
+            public Branch(BuilderToken owner, uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
             {
-                Frozen = frozen;
+                OwnerToken = owner;
                 BitMaskValues = bitMaskValues;
                 BitMaskBranches = bitMaskBranches;
                 Values = nodes;
@@ -36,7 +36,7 @@ namespace Apex.Collections.Immutable
             }
 
             public Branch(uint bitMaskValues, uint bitMaskBranches, ValueNode[] nodes, Branch[] branches)
-                : this(true, bitMaskValues, bitMaskBranches, nodes, branches)
+                : this(null, bitMaskValues, bitMaskBranches, nodes, branches)
             {
             }
         }

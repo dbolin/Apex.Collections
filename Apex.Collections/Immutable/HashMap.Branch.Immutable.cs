@@ -44,7 +44,7 @@ namespace Apex.Collections.Immutable
                     }
 
                     var branchIndex = PopCount(BitMaskBranches & (bitmask - 1));
-                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, false);
+                    var branch = CreateFrom(equalityComparer, node, level + BitWidth, hash >> 5, key, value, null);
                     result = OperationResult.Added;
                     return new Branch(BitMaskValues & (~bitmask), BitMaskBranches | bitmask, RemoveAt(Values, valueIndex), Insert(Branches, branchIndex, branch));
                 }

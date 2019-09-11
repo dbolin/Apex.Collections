@@ -28,7 +28,7 @@ namespace Apex.Collections.Immutable
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static Branch CreateFrom(IEqualityComparer<TKey> equalityComparer, ValueNode node, int level, int hash, TKey key, TValue value,
-            bool mutable)
+            BuilderToken builderToken)
         {
             var firstBitMask = GetBitMask(equalityComparer.GetHashCode(node.Key) >> level);
             var secondBitMask = GetBitMask(hash);
@@ -41,11 +41,11 @@ namespace Apex.Collections.Immutable
                     var newNodesInner = new ValueNode[2];
                     newNodesInner[0] = node;
                     newNodesInner[1] = new ValueNode(key, value);
-                    return new Branch(0, 0, newNodesInner, Array.Empty<Branch>());
+                    return new Branch(builderToken, 0, 0, newNodesInner, Array.Empty<Branch>());
                 }
 
-                var nextBranch = CreateFrom(equalityComparer, node, level + Branch.BitWidth, hash >> 5, key, value, mutable);
-                return new Branch(!mutable, 0, firstBitMask, Array.Empty<ValueNode>(), new[] { nextBranch });
+                var nextBranch = CreateFrom(equalityComparer, node, level + Branch.BitWidth, hash >> 5, key, value, builderToken);
+                return new Branch(builderToken, 0, firstBitMask, Array.Empty<ValueNode>(), new[] { nextBranch });
             }
 
             var resultBitBask = firstBitMask | secondBitMask;
@@ -55,12 +55,12 @@ namespace Apex.Collections.Immutable
             {
                 newNodes[0] = node;
                 newNodes[1] = new ValueNode(key, value);
-                return new Branch(!mutable, resultBitBask, 0, newNodes, Array.Empty<Branch>());
+                return new Branch(builderToken, resultBitBask, 0, newNodes, Array.Empty<Branch>());
             }
 
             newNodes[0] = new ValueNode(key, value);
             newNodes[1] = node;
-            return new Branch(!mutable, resultBitBask, 0, newNodes, Array.Empty<Branch>());
+            return new Branch(builderToken, resultBitBask, 0, newNodes, Array.Empty<Branch>());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]

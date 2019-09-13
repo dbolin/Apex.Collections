@@ -106,9 +106,9 @@ namespace Benchmarks
 
         static void Test()
         {
-            var x = new DictionariesEnumeration<int>();
-            x.Count = 10000;
-            x.Init();
+            var x = new DictionariesBuilderAdd<int>();
+            x.Count = 5;
+            x.Init2();
 
             while (true)
             {

@@ -168,21 +168,6 @@ namespace Apex.Collections.Immutable
                 value = default;
                 return false;
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-            private static T[] SetItem<T>(T[] array, int index, T item)
-            {
-                var length = array.Length;
-                var newArray = new T[length];
-
-                if (length != 1)
-                {
-                    Array.Copy(array, 0, newArray, 0, array.Length);
-                }
-                newArray[index] = item;
-
-                return newArray;
-            }
         }
     }
 }

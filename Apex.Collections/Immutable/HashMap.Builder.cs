@@ -7,13 +7,17 @@ namespace Apex.Collections.Immutable
     {
         public sealed class Builder
         {
-            internal class State
+            internal sealed class State
             {
                 public BuilderToken OwnerToken;
+                public ArrayPooler<ValueNode> Values;
+                public ArrayPooler<Branch> Branches;
 
                 public State()
                 {
                     OwnerToken = new BuilderToken();
+                    Values = new ArrayPooler<ValueNode>();
+                    Branches = new ArrayPooler<Branch>();
                 }
 
                 public void Freeze()

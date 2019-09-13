@@ -64,6 +64,21 @@ namespace Apex.Collections.Immutable
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private static T[] SetItem<T>(T[] array, int index, T item)
+        {
+            var length = array.Length;
+            var newArray = new T[length];
+
+            if (length != 1)
+            {
+                Array.Copy(array, 0, newArray, 0, array.Length);
+            }
+            newArray[index] = item;
+
+            return newArray;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static T[] Insert<T>(T[] array, int index, T item)
         {
             var newArray = new T[array.Length + 1];
@@ -98,11 +113,6 @@ namespace Apex.Collections.Immutable
 
             var newArray = new T[array.Length - 1];
 
-            if (array.Length == 1)
-            {
-                return newArray;
-            }
-
             int s = 0;
             for (int d = 0; d < newArray.Length; ++s, ++d)
             {
@@ -114,6 +124,58 @@ namespace Apex.Collections.Immutable
                 newArray[d] = array[s];
             }
 
+            return newArray;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private static T[] BuilderInsert<T>(T[] array, int index, T item, ArrayPooler<T> arrayPool)
+        {
+            var newArray = arrayPool.Get(array.Length + 1);
+            newArray[index] = item;
+
+            if (array.Length == 0)
+            {
+                arrayPool.Return(array);
+                return newArray;
+            }
+
+            int s = 0;
+            for (int d = 0; d != index; ++s, ++d)
+            {
+                newArray[d] = array[s];
+            }
+
+            for (int d = index + 1; d < newArray.Length; ++s, ++d)
+            {
+                newArray[d] = array[s];
+            }
+
+            arrayPool.Return(array);
+            return newArray;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private static T[] BuilderRemoveAt<T>(T[] array, int index, ArrayPooler<T> arrayPool)
+        {
+            if (array.Length == 1)
+            {
+                arrayPool.Return(array);
+                return Array.Empty<T>();
+            }
+
+            var newArray = arrayPool.Get(array.Length - 1);
+            int s = 0;
+            for (int d = 0; d < newArray.Length; ++s, ++d)
+            {
+                if (s == index)
+                {
+                    d--;
+                    continue;
+                }
+                newArray[d] = array[s];
+            }
+
+            arrayPool.Return(array);
             return newArray;
         }
     }

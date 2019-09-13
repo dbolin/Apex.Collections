@@ -71,8 +71,8 @@ namespace Apex.Collections.Immutable
                     mutated = true;
                     BitMaskValues &= ~bitmask;
                     BitMaskBranches |= bitmask;
-                    Values = RemoveAt(Values, valueIndex);
-                    Branches = Insert(Branches, branchIndex, branch);
+                    Values = BuilderRemoveAt(Values, valueIndex, builderState.Values);
+                    Branches = BuilderInsert(Branches, branchIndex, branch, builderState.Branches);
                     return this;
                 }
 
@@ -86,7 +86,7 @@ namespace Apex.Collections.Immutable
 
                 mutated = true;
                 BitMaskValues |= bitmask;
-                Values = Insert(Values, valueIndex, new ValueNode(key, value));
+                Values = BuilderInsert(Values, valueIndex, new ValueNode(key, value), builderState.Values);
                 return this;
             }
 
@@ -111,7 +111,7 @@ namespace Apex.Collections.Immutable
 
                         mutated = true;
                         BitMaskBranches &= ~bitmask;
-                        Branches = RemoveAt(Branches, branchIndex);
+                        Branches = BuilderRemoveAt(Branches, branchIndex, builderState.Branches);
                         return this;
                     }
 
@@ -153,7 +153,7 @@ namespace Apex.Collections.Immutable
 
                         mutated = true;
                         BitMaskValues &= ~bitmask;
-                        Values = RemoveAt(Values, valueIndex);
+                        Values = BuilderRemoveAt(Values, valueIndex, builderState.Values);
                         return this;
                     }
                 }
@@ -181,7 +181,7 @@ namespace Apex.Collections.Immutable
                             }
 
                             mutated = true;
-                            Values = RemoveAt(Values, i);
+                            Values = BuilderRemoveAt(Values, i, builderState.Values);
                             return this;
                         }
                     }

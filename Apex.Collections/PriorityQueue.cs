@@ -5,7 +5,12 @@ namespace Apex.Collections
 {
     public sealed class PriorityQueue<T> where T : IComparable<T>
     {
-        private readonly List<T> items = new List<T>();
+        private readonly List<T> items;
+
+        public PriorityQueue(int capacity = 4)
+        {
+            items = new List<T>(capacity);
+        }
 
         public void Enqueue(T val)
         {

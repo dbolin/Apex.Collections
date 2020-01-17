@@ -59,6 +59,11 @@ namespace Apex.Collections
             return res;
         }
 
+        public T Peek()
+        {
+            return items[0];
+        }
+
         public bool IsEmpty => items.Count == 0;
 
         public void Clear()

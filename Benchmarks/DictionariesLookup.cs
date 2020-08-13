@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using ImTools;
 using Sasa.Collections;
 
 namespace Benchmarks
@@ -38,6 +39,15 @@ namespace Benchmarks
             for (int t = 0; t < Count; ++t)
             {
                 _tvl.TryGetValue(_keys[t], out _);
+            }
+        }
+
+        [Benchmark]
+        public void ImToolsHashMap()
+        {
+            for (int t = 0; t < Count; ++t)
+            {
+                _imToolsHashMap.TryFind(_keys[t], out _);
             }
         }
 

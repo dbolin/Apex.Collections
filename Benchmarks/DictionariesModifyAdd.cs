@@ -80,6 +80,16 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        public void ImToolsHashMap()
+        {
+            var t = ImTools.ImHashMap<T, int>.Empty;
+            for (int i = 0; i < Count; ++i)
+            {
+                t = t.AddOrUpdate(_keys[i], i);
+            }
+        }
+
+        [Benchmark]
         public void ApexHashMap()
         {
             var t = HashMap<T, int>.Empty;

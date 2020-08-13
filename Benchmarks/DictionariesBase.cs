@@ -1,6 +1,7 @@
 ﻿using Apex.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using ImmutableTrie;
+using ImTools;
 using Sasa.Collections;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Benchmarks
         protected Trie<T, int> _sasaTrie;
         protected ImmutableTrieDictionary<T, int> _sGuh;
         protected ImmutableTreeDictionary<T, int> _tvl;
+        protected ImHashMap<T, int> _imToolsHashMap;
         protected HashMap<T, int> _apexHashMap;
         protected List<T> _keys;
 
@@ -42,6 +44,7 @@ namespace Benchmarks
             _sasaTrie = Trie<T, int>.Empty;
             _sGuh = ImmutableTrieDictionary.Create<T, int>();
             _tvl = ImmutableTreeDictionary<T, int>.Empty;
+            _imToolsHashMap = ImHashMap<T, int>.Empty;
             _apexHashMap = HashMap<T, int>.Empty;
             for (int i = 0; i < Count; ++i)
             {
@@ -50,6 +53,7 @@ namespace Benchmarks
                 _sasaTrie = _sasaTrie.Add(k, i);
                 _sGuh = _sGuh.Add(k, i);
                 _tvl = _tvl.Add(k, i);
+                _imToolsHashMap = _imToolsHashMap.AddOrUpdate(k, i);
                 _apexHashMap = _apexHashMap.SetItem(k, i);
                 _keys.Add(k);
             }

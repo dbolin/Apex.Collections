@@ -1,5 +1,4 @@
-﻿using Apex.Collections;
-using Apex.Collections.Immutable;
+﻿using Apex.Collections.Immutable;
 using Apex.Runtime;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -8,17 +7,12 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Validators;
-using ImmutableTrie;
 using Perfolizer.Horology;
 using Sasa.Collections;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using TunnelVisionLabs.Collections.Trees.Immutable;
 
 namespace Benchmarks
@@ -27,18 +21,18 @@ namespace Benchmarks
     {
         public Config()
         {
-            Add(JitOptimizationsValidator.DontFailOnError);
-            Add(DefaultConfig.Instance.GetLoggers().ToArray()); // manual config has no loggers by default
-            Add(DefaultConfig.Instance.GetExporters().ToArray()); // manual config has no exporters by default
-            Add(DefaultConfig.Instance.GetColumnProviders().ToArray()); // manual config has no columns by default
+            AddValidator(JitOptimizationsValidator.DontFailOnError);
+            AddLogger(DefaultConfig.Instance.GetLoggers().ToArray()); // manual config has no loggers by default
+            AddExporter(DefaultConfig.Instance.GetExporters().ToArray()); // manual config has no exporters by default
+            AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray()); // manual config has no columns by default
 
-            Add(Job.Default.With(CsProjCoreToolchain.NetCoreApp31).WithGcServer(true).WithIterationTime(new Perfolizer.Horology.TimeInterval(250, TimeUnit.Millisecond)).WithMaxIterationCount(30));
+            AddJob(Job.Default.WithToolchain(CsProjCoreToolchain.NetCoreApp60).WithGcServer(true).WithIterationTime(new Perfolizer.Horology.TimeInterval(250, TimeUnit.Millisecond)).WithMaxIterationCount(30));
             //Add(Job.Core.With(CsProjCoreToolchain.NetCoreApp22).WithGcServer(true));
             //Add(Job.Clr.With(CsProjClassicNetToolchain.Net472));
             //Add(Job.CoreRT);
             //Add(HardwareCounter.BranchMispredictions, HardwareCounter.BranchInstructions, HardwareCounter.CacheMisses, HardwareCounter.LlcMisses);
 
-            Add(MemoryDiagnoser.Default);
+            AddDiagnoser(MemoryDiagnoser.Default);
         }
     }
 
@@ -107,6 +101,7 @@ namespace Benchmarks
 
         static void Test()
         {
+            /*
             var x = new DictionariesBuilderAdd<int>();
             x.Count = 5;
             x.Init2();
@@ -115,6 +110,7 @@ namespace Benchmarks
             {
                 x.ApexHashMap();
             }
+            */
         }
 
         static void Test2()

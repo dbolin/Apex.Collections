@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Apex.Runtime" Version="3.0.0" />
     <PackageReference Include="Apex.Serialization" Version="4.0.2" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1" />
     <PackageReference Include="ImmutableTrie" Version="1.0.0-alpha" />
     <PackageReference Include="ImTools" Version="3.1.0" />
